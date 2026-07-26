@@ -44,6 +44,11 @@ export interface GameState {
   // 輪回
   reincarnations: number
 
+  // 人物屬性（累積鍛鍊值）與自由分配點
+  attrTrain: Record<string, number>
+  attrAlloc: Record<string, number>
+  freeAttrPoints: number
+
   // 技能經驗
   gatherXp: Record<string, number> // caiyao/kuang/guanxiang
   craftXp: Record<string, number> // liandan/lianqi

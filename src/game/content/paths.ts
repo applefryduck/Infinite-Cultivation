@@ -1,5 +1,6 @@
 import type { FiveElement } from '../elements'
 import type { ItemCategory } from './items'
+import type { AttrId } from './attributes'
 
 /**
  * 素材需求：可指定固定 itemId，或指定「類別」讓玩家自選同類素材。
@@ -23,6 +24,8 @@ export interface Technique {
   qiPerSec: number // 基礎修為/秒（再乘上全域倍率）
   unlockRealm: number // 需達到的境界 stageIndex
   free?: boolean // 免費保底（不耗素材）
+  /** 此修煉方式鍛鍊的屬性與每秒鍛鍊值 */
+  trains: { attr: AttrId; per: number }[]
 }
 
 /** 修練體系招牌側加成（依體系等級給） */
@@ -54,9 +57,9 @@ export const PATHS: PathDef[] = [
     desc: '正統靈氣修煉，均衡而穩健，突破最穩。',
     combatRole: '術法',
     techniques: [
-      { id: 'lx_tuna', name: '吐納打坐', desc: '吐納天地靈氣，緩慢而不竭。', inputs: [], qiPerSec: 1, unlockRealm: 0, free: true },
-      { id: 'lx_herb', name: '服食靈草', desc: '服食靈草化為修為。', inputs: [{ category: 'herb', perSec: 0.15 }], qiPerSec: 4, unlockRealm: 0 },
-      { id: 'lx_stone', name: '靈石淬煉', desc: '碾碎靈石吸納其中靈氣。', inputs: [{ itemId: 'spiritStones', perSec: 2 }], qiPerSec: 9, unlockRealm: 9 },
+      { id: 'lx_tuna', name: '吐納打坐', desc: '吐納天地靈氣，緩慢而不竭。', inputs: [], qiPerSec: 1, unlockRealm: 0, free: true, trains: [{ attr: 'wuXing', per: 0.5 }, { attr: 'daoXin', per: 0.3 }] },
+      { id: 'lx_herb', name: '服食靈草', desc: '服食靈草化為修為。', inputs: [{ category: 'herb', perSec: 0.15 }], qiPerSec: 4, unlockRealm: 0, trains: [{ attr: 'genGu', per: 0.8 }, { attr: 'wuXing', per: 0.4 }] },
+      { id: 'lx_stone', name: '靈石淬煉', desc: '碾碎靈石吸納其中靈氣。', inputs: [{ itemId: 'spiritStones', perSec: 2 }], qiPerSec: 9, unlockRealm: 9, trains: [{ attr: 'wuXing', per: 1.2 }, { attr: 'qiYun', per: 0.5 }] },
     ],
     signature: (lv) => ({ breakthroughPct: Math.min(0.25, lv * 0.004) }),
   },
@@ -67,9 +70,9 @@ export const PATHS: PathDef[] = [
     element: '土',
     combatRole: '肉搏',
     techniques: [
-      { id: 'tx_forge', name: '鍛骨', desc: '以苦修錘鍊肉身。', inputs: [], qiPerSec: 0.8, unlockRealm: 0, free: true },
-      { id: 'tx_dan', name: '吞噬妖丹', desc: '吞服妖丹淬鍊肉身。', inputs: [{ category: 'beast', perSec: 0.1 }], qiPerSec: 5, unlockRealm: 0 },
-      { id: 'tx_blood', name: '淬血洗髓', desc: '以妖獸精血洗練骨血。', inputs: [{ itemId: 'beast_blood', perSec: 0.05 }], qiPerSec: 8, unlockRealm: 9 },
+      { id: 'tx_forge', name: '鍛骨', desc: '以苦修錘鍊肉身。', inputs: [], qiPerSec: 0.8, unlockRealm: 0, free: true, trains: [{ attr: 'genGu', per: 0.7 }] },
+      { id: 'tx_dan', name: '吞噬妖丹', desc: '吞服妖丹淬鍊肉身。', inputs: [{ category: 'beast', perSec: 0.1 }], qiPerSec: 5, unlockRealm: 0, trains: [{ attr: 'genGu', per: 1.4 }] },
+      { id: 'tx_blood', name: '淬血洗髓', desc: '以妖獸精血洗練骨血。', inputs: [{ itemId: 'beast_blood', perSec: 0.05 }], qiPerSec: 8, unlockRealm: 9, trains: [{ attr: 'genGu', per: 2 }, { attr: 'daoXin', per: 0.4 }] },
     ],
     signature: (lv) => ({ hpPct: lv * 0.03, atkPct: lv * 0.02, failLossReduce: Math.min(0.6, lv * 0.01) }),
   },
@@ -79,9 +82,9 @@ export const PATHS: PathDef[] = [
     desc: '溫養識海，神識強則煉製精、御寶多、感知銳。',
     combatRole: '御劍',
     techniques: [
-      { id: 'ss_guan', name: '入定觀想', desc: '靜觀識海，神念漸長。', inputs: [], qiPerSec: 0.9, unlockRealm: 0, free: true },
-      { id: 'ss_dream', name: '神念淬煉', desc: '以夢境碎片淬鍊神念。', inputs: [{ category: 'spirit', perSec: 0.1 }], qiPerSec: 5, unlockRealm: 0 },
-      { id: 'ss_soul', name: '煉魂', desc: '煉化妖魂壯大神識。', inputs: [{ itemId: 'beast_soul', perSec: 0.05 }], qiPerSec: 8, unlockRealm: 9 },
+      { id: 'ss_guan', name: '入定觀想', desc: '靜觀識海，神念漸長。', inputs: [], qiPerSec: 0.9, unlockRealm: 0, free: true, trains: [{ attr: 'shenShi', per: 0.6 }, { attr: 'daoXin', per: 0.4 }] },
+      { id: 'ss_dream', name: '神念淬煉', desc: '以夢境碎片淬鍊神念。', inputs: [{ category: 'spirit', perSec: 0.1 }], qiPerSec: 5, unlockRealm: 0, trains: [{ attr: 'shenShi', per: 1.3 }, { attr: 'qiYun', per: 0.3 }] },
+      { id: 'ss_soul', name: '煉魂', desc: '煉化妖魂壯大神識。', inputs: [{ itemId: 'beast_soul', perSec: 0.05 }], qiPerSec: 8, unlockRealm: 9, trains: [{ attr: 'shenShi', per: 2 }, { attr: 'qiYun', per: 0.5 }] },
     ],
     signature: (lv) => ({
       craftSuccessPct: Math.min(0.4, lv * 0.008),

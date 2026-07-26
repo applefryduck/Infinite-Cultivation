@@ -50,6 +50,13 @@ function invCount(state: GameState, id: string): number {
   return state.inventory[id] ?? 0
 }
 
+function trainAttrs(state: GameState, tech: { trains?: { attr: string; per: number }[] }, seconds: number, mult = 1): void {
+  if (!tech.trains) return
+  for (const t of tech.trains) {
+    state.attrTrain[t.attr] = (state.attrTrain[t.attr] ?? 0) + t.per * seconds * mult
+  }
+}
+
 function addItem(state: GameState, id: string, qty: number): void {
   state.inventory[id] = (state.inventory[id] ?? 0) + qty
   if (state.inventory[id] <= 0) delete state.inventory[id]
@@ -103,6 +110,7 @@ function accrueCultivation(state: GameState, seconds: number, now: number): void
 
     const gained = rateOf(tech.qiPerSec, tech.id) * efficiency * sustained
     state.qi += gained
+    trainAttrs(state, tech, sustained, efficiency)
     state.pathXp[path.id] = (state.pathXp[path.id] ?? 0) + tech.qiPerSec * sustained * 0.5
     state.techMastery[tech.id] = (state.techMastery[tech.id] ?? 0) + tech.qiPerSec * sustained * 0.5
 
@@ -112,6 +120,7 @@ function accrueCultivation(state: GameState, seconds: number, now: number): void
       const free = path.techniques.find((t) => t.free)
       if (free) {
         state.qi += rateOf(free.qiPerSec, free.id) * leftover
+        trainAttrs(state, free, leftover)
         if (state.activeTechId !== free.id) {
           state.activeTechId = free.id
           pushLog(state, `素材耗盡，自動退回「${free.name}」。`, 'info')
@@ -121,6 +130,7 @@ function accrueCultivation(state: GameState, seconds: number, now: number): void
   } else {
     const gained = rateOf(tech.qiPerSec, tech.id) * seconds
     state.qi += gained
+    trainAttrs(state, tech, seconds)
     state.pathXp[path.id] = (state.pathXp[path.id] ?? 0) + tech.qiPerSec * seconds * 0.5
     state.techMastery[tech.id] = (state.techMastery[tech.id] ?? 0) + tech.qiPerSec * seconds * 0.5
   }
@@ -188,6 +198,7 @@ interface Store {
   setActiveTechnique: (pathId: string, techId: string) => void
   setActiveGather: (actionId: string | undefined) => void
   setMaterialChoice: (techId: string, index: number, itemId: string) => void
+  allocAttr: (attr: string) => void
   breakthrough: () => void
   combine: (aId: string, bId: string) => void
   refine: (aId: string) => void
@@ -251,6 +262,16 @@ export const useGame = create<Store>((set, get) => ({
       return { state: s }
     }),
 
+  allocAttr: (attr) =>
+    set((store) => {
+      const s = clone(store.state)
+      if (s.freeAttrPoints <= 0) return {}
+      s.freeAttrPoints -= 1
+      s.attrAlloc[attr] = (s.attrAlloc[attr] ?? 0) + 1
+      playSfx('levelup')
+      return { state: s }
+    }),
+
   breakthrough: () =>
     set((store) => {
       const s = clone(store.state)
@@ -268,7 +289,14 @@ export const useGame = create<Store>((set, get) => ({
         s.maxStageIndex = Math.max(s.maxStageIndex, s.stageIndex)
         const reward = Math.floor(breakthroughReward(s.stageIndex - 1) * spiritRootMultiplier(s.spiritRootLevel))
         s.spiritStones += reward
-        pushLog(s, `突破成功！境界更進一步，獲得靈石 ${reward} 枚。`, 'breakthrough')
+        const next = getStageInfo(s.stageIndex)
+        const gainedPoints = next.isMajorBoundary ? 5 : 2
+        s.freeAttrPoints += gainedPoints
+        pushLog(
+          s,
+          `突破成功！境界更進一步，獲得靈石 ${reward} 枚、屬性點 ${gainedPoints} 點。`,
+          'breakthrough',
+        )
         playSfx('breakthrough')
       } else {
         const extraLoss = Math.floor(cost * 0.3 * (1 - failLossReduce))

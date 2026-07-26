@@ -1436,3 +1436,221 @@ body {
   font-size: 0.72rem;
   color: var(--ink-dim);
 }
+
+/* ===== 人物屬性 ===== */
+.attr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.attr-head h2 {
+  margin-bottom: 0;
+}
+.free-points {
+  font-size: 0.78rem;
+  color: var(--gold);
+  background: rgba(232, 196, 105, 0.12);
+  border: 1px solid rgba(232, 196, 105, 0.3);
+  border-radius: 6px;
+  padding: 3px 9px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.attr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.attr-row:last-child {
+  border-bottom: none;
+}
+.attr-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.attr-emoji {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.attr-info {
+  flex: 1;
+  min-width: 0;
+}
+.attr-name-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.attr-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.attr-total {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.attr-alloc {
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+}
+.attr-bar {
+  height: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 5px 0 4px;
+}
+.attr-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  opacity: 0.85;
+}
+.attr-effects {
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+.attr-next {
+  font-size: 0.67rem;
+  color: var(--ink-dim);
+  opacity: 0.7;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.attr-plus {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--gold);
+  background: rgba(232, 196, 105, 0.12);
+  color: var(--gold);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: filter 0.15s ease;
+}
+.attr-plus:hover {
+  filter: brightness(1.3);
+}
+
+/* ===== 衍生數值 ===== */
+.derived-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+.derived {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 8px;
+  padding: 9px 8px;
+  text-align: center;
+}
+.derived-label {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+  margin-bottom: 3px;
+}
+.derived-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 體系摘要 ===== */
+.path-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.path-sum {
+  flex: 1 1 auto;
+  min-width: 92px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 9px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.path-sum.active {
+  border-color: var(--jade);
+  background: rgba(95, 214, 163, 0.1);
+}
+.ps-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.ps-lv {
+  color: var(--azure);
+  font-size: 0.78rem;
+}
+.ps-role {
+  color: var(--ink-dim);
+  font-size: 0.68rem;
+}
+.char-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+}
+.current-training {
+  margin: 12px 0 0;
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.current-training strong {
+  color: var(--jade);
+}
+
+/* ===== 修練頁 ===== */
+.cur-rate {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 9px;
+  padding: 10px;
+}
+.cur-rate strong {
+  color: var(--jade);
+  font-size: 1.05rem;
+}
+.path-panel.active {
+  border-color: rgba(95, 214, 163, 0.4);
+}
+.path-desc {
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+.tech-trains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+.train-tag {
+  font-size: 0.66rem;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 1px 6px;
+  opacity: 0.85;
+}

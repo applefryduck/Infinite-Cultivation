@@ -6,6 +6,7 @@ import { ResourceBar } from './components/ResourceBar'
 import { LogPanel } from './components/LogPanel'
 import { OfflineModal } from './components/OfflineModal'
 import { CultivationPanel } from './components/panels/CultivationPanel'
+import { CharacterPanel } from './components/panels/CharacterPanel'
 import { CombatPanel } from './components/panels/CombatPanel'
 import { GatherPanel } from './components/panels/GatherPanel'
 import { CraftPanel } from './components/panels/CraftPanel'
@@ -13,10 +14,11 @@ import { InventoryPanel } from './components/panels/InventoryPanel'
 import { CodexPanel } from './components/panels/CodexPanel'
 import { CavePanel } from './components/panels/CavePanel'
 
-type TabId = 'cultivate' | 'combat' | 'gather' | 'craft' | 'inventory' | 'codex' | 'cave'
+type TabId = 'character' | 'cultivate' | 'combat' | 'gather' | 'craft' | 'inventory' | 'codex' | 'cave'
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'cultivate', label: '修煉', icon: '☯️' },
+  { id: 'character', label: '人物', icon: '🧘' },
+  { id: 'cultivate', label: '修練', icon: '☯️' },
   { id: 'combat', label: '鬥戰', icon: '⚔️' },
   { id: 'gather', label: '採集', icon: '🌿' },
   { id: 'craft', label: '煉製', icon: '⚗️' },
@@ -27,7 +29,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 
 export default function App() {
   useGameLoop()
-  const [tab, setTab] = useState<TabId>('cultivate')
+  const [tab, setTab] = useState<TabId>('character')
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function App() {
 
       <main className="app-main">
         <div className="col col-left">
+          {tab === 'character' && <CharacterPanel />}
           {tab === 'cultivate' && <CultivationPanel />}
           {tab === 'combat' && <CombatPanel />}
           {tab === 'gather' && <GatherPanel />}

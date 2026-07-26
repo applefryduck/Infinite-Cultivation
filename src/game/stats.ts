@@ -2,6 +2,20 @@ import type { GameState } from './types'
 import { PATH_MAP, getTechnique } from './content/paths'
 import { getItemDef } from './content/items'
 import { levelForXp } from './xp'
+import { ATTRIBUTES, attrPoints } from './content/attributes'
+import type { AttrId } from './content/attributes'
+
+/** 某屬性的總點數＝鍛鍊所得 + 自由分配 */
+export function attrValue(state: GameState, id: AttrId): number {
+  return attrPoints(state.attrTrain?.[id] ?? 0) + (state.attrAlloc?.[id] ?? 0)
+}
+
+/** 全部屬性點數 */
+export function allAttrValues(state: GameState): Record<AttrId, number> {
+  const out = {} as Record<AttrId, number>
+  for (const a of ATTRIBUTES) out[a.id] = attrValue(state, a.id)
+  return out
+}
 
 export interface Aggregated {
   speedPct: number // 修煉速度加成（法寶/永久/招牌）
@@ -51,6 +65,17 @@ export function aggregate(state: GameState): Aggregated {
     agg.atkPct += b.atkPct ?? 0
     agg.failLossReduce += b.failLossReduce ?? 0
   }
+
+  // 人物屬性衍生效果
+  const attr = allAttrValues(state)
+  agg.hpPct += attr.genGu * 0.02
+  agg.defFlat += attr.genGu * 1.5
+  agg.speedPct += attr.wuXing * 0.012
+  agg.craftSuccessPct += attr.shenShi * 0.008
+  agg.artifactSlots += Math.floor(attr.shenShi / 20)
+  agg.dropPct += attr.qiYun * 0.01
+  agg.breakthroughPct += attr.daoXin * 0.005
+  agg.failLossReduce += attr.daoXin * 0.01
 
   // 裝備法寶
   for (const itemId of Object.values(state.equipped)) {
@@ -121,7 +146,7 @@ export function combatStats(state: GameState): CombatStats {
   const atk = Math.floor((atkBase + agg.atkFlat) * (1 + agg.atkPct))
   const def = 5 + tixiuLv * 2 + agg.defFlat
   const shenshiLv = pathLevel(state, 'shenshi')
-  const crit = Math.min(0.6, 0.05 + shenshiLv * 0.003)
+  const crit = Math.min(0.6, 0.05 + shenshiLv * 0.003 + attrValue(state, 'shenShi') * 0.003)
   const attackCount = 1 + agg.artifactSlots
 
   return { maxHp, atk, def, crit, attackCount, role: path.combatRole }
