@@ -20,6 +20,8 @@ import type { ItemDef } from './content/items'
 import { levelForXp } from './xp'
 import { globalSpeedMult, aggregate, combatStats } from './stats'
 import { resolveMaterial, materialEfficiency } from './materials'
+import { rollTribulationChoices, tribulationChance, getTribulation } from './content/tribulations'
+import { allAttrValues } from './stats'
 import { offlineProvider, recipeKey } from './crafting/provider'
 import { applyConsumable, pruneBuffs } from './effects'
 import { combatTick } from './combatEngine'
@@ -199,6 +201,8 @@ interface Store {
   setActiveGather: (actionId: string | undefined) => void
   setMaterialChoice: (techId: string, index: number, itemId: string) => void
   allocAttr: (attr: string) => void
+  attemptTribulation: (tribId: string) => void
+  craftKnown: (resultItemId: string) => { ok: boolean; error?: string }
   breakthrough: () => void
   combine: (aId: string, bId: string) => void
   refine: (aId: string) => void
@@ -272,11 +276,86 @@ export const useGame = create<Store>((set, get) => ({
       return { state: s }
     }),
 
+  attemptTribulation: (tribId) =>
+    set((store) => {
+      const s = clone(store.state)
+      const trib = getTribulation(tribId)
+      if (!trib || !s.pendingTribulation?.choices.includes(tribId)) return {}
+
+      const cost = breakthroughCost(s.stageIndex)
+      if (s.qi < cost) return {}
+
+      const nextStage = getStageInfo(s.stageIndex + 1)
+      const attrs = allAttrValues(s)
+      const chance = tribulationChance(trib, attrs, nextStage.majorIndex)
+
+      s.qi -= cost
+      s.pendingTribulation = null
+      s.pendingBreakthroughPct = 0
+
+      if (Math.random() < chance) {
+        s.stageIndex += 1
+        s.maxStageIndex = Math.max(s.maxStageIndex, s.stageIndex)
+
+        // 套用永久收益
+        const r = trib.reward
+        if (r.permaSpeedPct) s.permaSpeedPct += r.permaSpeedPct
+        if (r.hpPct) s.permaHpPct += r.hpPct
+        if (r.atkPct) s.permaAtkPct += r.atkPct
+        if (r.breakthroughPct) s.permaBreakthroughPct += r.breakthroughPct
+        if (r.dropPct) s.permaDropPct += r.dropPct
+        if (r.attrPoints) s.freeAttrPoints += r.attrPoints
+        if (r.dao) s.dao += r.dao
+        if (r.stones) s.spiritStones += r.stones
+
+        const parts: string[] = []
+        if (r.permaSpeedPct) parts.push(`修煉速度 +${Math.round(r.permaSpeedPct * 100)}%`)
+        if (r.hpPct) parts.push(`氣血 +${Math.round(r.hpPct * 100)}%`)
+        if (r.atkPct) parts.push(`攻擊 +${Math.round(r.atkPct * 100)}%`)
+        if (r.breakthroughPct) parts.push(`突破率 +${Math.round(r.breakthroughPct * 100)}%`)
+        if (r.dropPct) parts.push(`掉率 +${Math.round(r.dropPct * 100)}%`)
+        if (r.attrPoints) parts.push(`屬性點 ${r.attrPoints}`)
+        if (r.dao) parts.push(`道韻 ${r.dao}`)
+        if (r.stones) parts.push(`靈石 ${r.stones}`)
+
+        pushLog(
+          s,
+          `渡過${trib.name}！${getStageInfo(s.stageIndex).fullName}已成，永久獲得：${parts.join('、')}。`,
+          'breakthrough',
+        )
+        playSfx('breakthrough')
+      } else {
+        // 失敗：重創但不跌境界
+        const loss = Math.floor(cost * 0.5 * trib.penalty)
+        s.qi = Math.max(0, s.qi - loss)
+        s.combat.playerHp = 1
+        pushLog(
+          s,
+          `${trib.name}未能渡過！你被天雷轟中，重傷垂危，修為大損，須休養再試。`,
+          'bad',
+        )
+        playSfx('defeat')
+      }
+      return { state: s }
+    }),
+
   breakthrough: () =>
     set((store) => {
       const s = clone(store.state)
       const cost = breakthroughCost(s.stageIndex)
       if (s.qi < cost) return {}
+
+      // 跨大境界 → 先渡雷劫（由玩家選擇劫種）
+      const nextStage = getStageInfo(s.stageIndex + 1)
+      if (nextStage.isMajorBoundary && !s.pendingTribulation) {
+        const luck = allAttrValues(s).qiYun
+        const choices = rollTribulationChoices(luck, nextStage.majorIndex).map((t) => t.id)
+        s.pendingTribulation = { choices }
+        pushLog(s, `修為圓滿，天地變色——${nextStage.realmName}之劫將至，你須擇一而渡。`, 'breakthrough')
+        playSfx('fail')
+        return { state: s }
+      }
+
       let chance = breakthroughChance(s.stageIndex)
       // 招牌 + 破境丹 + 法寶加成
       const agg = aggregate(s)
@@ -306,6 +385,37 @@ export const useGame = create<Store>((set, get) => ({
       }
       return { state: s }
     }),
+
+  craftKnown: (resultItemId) => {
+    const st = get().state
+    // 找出能產出此物品的已知配方
+    const entry = Object.entries(st.discovered).find(([, id]) => id === resultItemId)
+    if (!entry) return { ok: false, error: '尚未發現此配方。' }
+    const [key] = entry
+    if (key.startsWith('refine|')) {
+      const src = key.slice('refine|'.length)
+      const def = getItemDef(src)
+      if (!def) return { ok: false, error: '素材資料遺失。' }
+      if (def.category !== 'element' && (st.inventory[src] ?? 0) < 1) {
+        return { ok: false, error: `素材不足：${def.name}` }
+      }
+      get().refine(src)
+      return { ok: true }
+    }
+    const [a, b] = key.split('+')
+    const need: Record<string, number> = {}
+    for (const id of [a, b]) {
+      if (getItemDef(id)?.category === 'element') continue
+      need[id] = (need[id] ?? 0) + 1
+    }
+    for (const [id, n] of Object.entries(need)) {
+      if ((st.inventory[id] ?? 0) < n) {
+        return { ok: false, error: `素材不足：${getItemDef(id)?.name ?? id}` }
+      }
+    }
+    get().combine(a, b)
+    return { ok: true }
+  },
 
   combine: (aId, bId) =>
     set((store) => {

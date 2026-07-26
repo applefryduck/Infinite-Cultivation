@@ -34,6 +34,11 @@ export function createInitialState(): GameState {
     buffs: [],
     permaSpeedPct: 0,
     pendingBreakthroughPct: 0,
+    pendingTribulation: null,
+    permaHpPct: 0,
+    permaAtkPct: 0,
+    permaBreakthroughPct: 0,
+    permaDropPct: 0,
     combat: {
       mode: 'idle',
       waveIndex: 0,

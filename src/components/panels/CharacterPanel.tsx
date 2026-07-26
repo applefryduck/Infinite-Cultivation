@@ -47,12 +47,16 @@ export function CharacterPanel() {
           </div>
         </div>
 
-        <button className="btn btn-breakthrough" disabled={!ready} onClick={doBreakthrough}>
-          突破 → {next.fullName}
+        <button
+          className={'btn btn-breakthrough' + (next.isMajorBoundary ? ' trib' : '')}
+          disabled={!ready}
+          onClick={doBreakthrough}
+        >
+          {next.isMajorBoundary ? `渡劫 → ${next.fullName}` : `突破 → ${next.fullName}`}
         </button>
         <div className="breakthrough-chance">
           突破成功率 <strong>{Math.round(chance * 100)}%</strong>
-          {next.isMajorBoundary && <span className="major-tag">跨大境界·凶險</span>}
+          {next.isMajorBoundary && <span className="major-tag">跨大境界·需渡雷劫</span>}
           {state.pendingBreakthroughPct > 0 && (
             <span className="buff-tag">破境丹 +{Math.round(state.pendingBreakthroughPct * 100)}%</span>
           )}

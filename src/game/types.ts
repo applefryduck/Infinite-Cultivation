@@ -76,6 +76,13 @@ export interface GameState {
   permaSpeedPct: number
   pendingBreakthroughPct: number // 破境丹：下次突破加成
 
+  // 渡劫（跨大境界時進行）
+  pendingTribulation?: { choices: string[] } | null
+  permaHpPct: number
+  permaAtkPct: number
+  permaBreakthroughPct: number
+  permaDropPct: number
+
   // 戰鬥
   combat: CombatState
 

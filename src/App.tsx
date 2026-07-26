@@ -5,6 +5,7 @@ import { SettingsModal } from './components/SettingsModal'
 import { ResourceBar } from './components/ResourceBar'
 import { LogPanel } from './components/LogPanel'
 import { OfflineModal } from './components/OfflineModal'
+import { TribulationModal } from './components/TribulationModal'
 import { CultivationPanel } from './components/panels/CultivationPanel'
 import { CharacterPanel } from './components/panels/CharacterPanel'
 import { CombatPanel } from './components/panels/CombatPanel'
@@ -84,6 +85,7 @@ export default function App() {
       </main>
 
       <OfflineModal />
+      <TribulationModal />
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   )

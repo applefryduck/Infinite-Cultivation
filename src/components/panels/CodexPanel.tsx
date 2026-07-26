@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useGame } from '../../game/store'
+import { ItemDetailModal } from '../ItemDetailModal'
 import { CATEGORY_LABEL } from '../ui/labels'
 import { NAMED_CHAINS } from '../../game/crafting/namedChains'
 
 export function CodexPanel() {
   const state = useGame((s) => s.state)
+  const [selected, setSelected] = useState<string | null>(null)
   const discoveredItems = Object.values(state.discoveredItems)
   const discoveredCount = discoveredItems.length
   const namedTotal = Object.keys(NAMED_CHAINS).length
@@ -22,15 +25,21 @@ export function CodexPanel() {
           .map((def) => {
             const isNamed = Object.values(NAMED_CHAINS).some((n) => n.name === def.name)
             return (
-              <div key={def.id} className={'codex-item' + (isNamed ? ' named' : '')} title={def.desc ?? ''}>
+              <button
+                key={def.id}
+                className={'codex-item' + (isNamed ? ' named' : '')}
+                title={def.desc ?? '點擊查看詳情'}
+                onClick={() => setSelected(def.id)}
+              >
                 <span className="codex-emoji">{def.emoji}</span>
                 <span className="codex-name">{def.name}</span>
                 <span className="codex-cat">{CATEGORY_LABEL[def.category]}</span>
                 {isNamed && <span className="codex-star">★</span>}
-              </div>
+              </button>
             )
           })}
       </div>
+      {selected && <ItemDetailModal itemId={selected} onClose={() => setSelected(null)} />}
     </section>
   )
 }

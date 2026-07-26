@@ -66,6 +66,12 @@ export function aggregate(state: GameState): Aggregated {
     agg.failLossReduce += b.failLossReduce ?? 0
   }
 
+  // 渡劫永久收益
+  agg.hpPct += state.permaHpPct ?? 0
+  agg.atkPct += state.permaAtkPct ?? 0
+  agg.breakthroughPct += state.permaBreakthroughPct ?? 0
+  agg.dropPct += state.permaDropPct ?? 0
+
   // 人物屬性衍生效果
   const attr = allAttrValues(state)
   agg.hpPct += attr.genGu * 0.02

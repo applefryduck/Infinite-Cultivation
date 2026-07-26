@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { useGame } from '../../game/store'
+import { ItemDetailModal } from '../ItemDetailModal'
 import { getItemDef } from '../../game/content/items'
 import type { ItemDef } from '../../game/content/items'
 import { CATEGORY_LABEL, EFFECT_LABEL } from '../ui/labels'
 
 export function InventoryPanel() {
   const state = useGame((s) => s.state)
+  const [selected, setSelected] = useState<string | null>(null)
   const useItem = useGame((s) => s.useItem)
   const equip = useGame((s) => s.equip)
   const unequip = useGame((s) => s.unequip)
@@ -47,11 +50,13 @@ export function InventoryPanel() {
         <div className="inv-grid">
           {items.map(({ def, count }) => (
             <div key={def.id} className="inv-item">
-              <div className="inv-top">
+              <div className="inv-top" onClick={() => setSelected(def.id)} style={{ cursor: 'pointer' }}>
                 <span className="inv-emoji">{def.emoji}</span>
                 <span className="inv-count">×{count}</span>
               </div>
-              <div className="inv-name">{def.name}</div>
+              <div className="inv-name" onClick={() => setSelected(def.id)} style={{ cursor: 'pointer' }}>
+                {def.name}
+              </div>
               <div className="inv-cat">
                 {CATEGORY_LABEL[def.category]}·{tierName(def.tier)}
               </div>
@@ -72,6 +77,7 @@ export function InventoryPanel() {
           ))}
         </div>
       </section>
+      {selected && <ItemDetailModal itemId={selected} onClose={() => setSelected(null)} />}
     </>
   )
 }
