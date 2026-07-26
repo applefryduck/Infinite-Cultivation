@@ -1,48 +1,66 @@
 # 無限修仙 · Infinite Cultivation
 
-一款放置掛機修仙（idle / incremental）網頁遊戲。吐納天地靈氣，一步步踏破境界，輪回轉世，證道飛升 —— 境界無限延伸，可以無盡地修下去。
+一款放置掛機修仙（idle / incremental）網頁遊戲。融合 **Melvor Idle** 的多技能並行與精通、**Infinite Craft** 的自由組合無限發現，打造修仙版「萬物煉製 × 多流派修練 × 自動鬥戰」。
 
-## 玩法
+## 兩大支柱
 
-- **修煉**：掛機自動吸收靈氣累積修為（含離線收益，最多結算 12 小時）。
-- **境界**：練氣 → 築基 → 金丹 → 元嬰 → 化神 → 煉虛 → 合體 → 大乘 → 渡劫，飛升後進入程序化生成的無限仙境（地仙 / 天仙 / 金仙 …·N 重天）。
-- **突破**：修為圓滿後可嘗試突破，有成功率；跨大境界更凶險，失敗會走火入魔損失修為。
-- **靈石經濟**：突破獲得靈石，用於**參悟功法**（提升修煉速度）與**溫養靈根**（提升靈石產出）。
-- **輪回轉世**：達築基大圓滿後可轉世，將此世積累化為**道韻**，永久提升修煉速度 —— 無限重玩的核心。
-- **奇遇**：修行途中隨機觸發機緣、心魔等事件。
-- **自動存檔**：進度存於瀏覽器 localStorage，每 5 秒與離開頁面時自動保存。
+- **修煉 / 突破**：累積修為 → 突破境界（機率制，跨大境界更凶險）→ 解鎖更高階內容。境界練氣→渡劫，飛升後程序化生成無限仙境。
+- **鬥戰**：中度自動戰鬥。戰力由修練體系衍生，獵場刷妖獸、秘境闖波次＋BOSS，含五行相剋。掉素材／靈石／修為，餵回所有技能線。
+
+## 修練體系（修仙版流派）
+
+各體系消耗不同素材、給不同招牌強項，皆推同一條境界階梯，可專精或博採，輪回可換 build：
+
+| 體系 | 消耗 | 招牌 / 戰鬥風格 |
+|---|---|---|
+| **靈修** | 靈氣(免費)、靈草、靈石 | 均衡穩健、突破率↑ · 術法 |
+| **體修** | 妖丹、獸血 | 氣血肉身、突破抗反噬 · 肉搏 |
+| **神識** | 夢境本源、妖魂 | 煉製成功率↑、御寶多段、掉率↑ · 御劍 |
+
+每種修煉方式有免費保底，素材耗盡自動退回打坐（掛機防卡死）。
+
+## 技能線
+
+- **採集**：採藥 / 採礦 / 觀想（可與修煉並行掛機）
+- **製作**：煉丹 / 煉器 —— **丹爐萬物煉製**：自由組合兩樣素材無限發現，發現後轉為可掛機重複煉、可累積配方精通
+- 圖鑑收錄所有發現，首次發現給獎勵，含手工策劃的招牌秘物鏈（如紫霄神雷劍、九轉金丹）
+
+## LLM 就緒的煉製
+
+煉製底層是 `CraftProvider` 介面（`src/game/crafting/provider.ts`）。目前為**離線程序化生成器**（零 API 成本）：LLM/生成器只決定「名稱／emoji／類別／稀有度」，**數值一律由遊戲公式依類別＋輸入稀有度計算**，平衡永遠握在程式手裡。日後接真 Claude API 只需替換此 provider。
 
 ## 技術棧
 
-- **React 18** + **TypeScript** + **Vite**
-- **zustand** 管理遊戲狀態
-- 固定間隔 tick 驅動的遊戲主迴圈，純前端、無後端。
+- **React 18** + **TypeScript** + **Vite**，**zustand** 管理狀態
+- 固定 tick 遊戲主迴圈、純前端、localStorage 自動存檔＋離線收益（上限 12 小時）
+- OSRS/Melvor 式 XP 曲線（`src/game/xp.ts`）驅動技能與精通
 
 ## 開發
 
 ```bash
-npm install      # 安裝依賴
-npm run dev      # 本地開發（http://localhost:5173）
-npm run build    # 型別檢查 + 打包到 dist/
-npm run preview  # 預覽打包結果
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # 型別檢查 + 打包
+npm run preview
 ```
 
 ## 專案結構
 
 ```
-src/
-  game/
-    types.ts        # 型別定義
-    realms.ts       # 境界系統（含無限程序化生成）
-    formulas.ts     # 數值公式（成本 / 速度 / 成功率 / 獎勵 / 格式化）
-    events.ts       # 隨機奇遇事件
-    save.ts         # 存檔 / 讀檔 / 離線初始狀態
-    store.ts        # zustand store：核心遊戲邏輯與離線結算
-    useGameLoop.ts  # 遊戲主迴圈 hook
-  components/       # 各 UI 面板（境界 / 洞府 / 手札 / 離線彈窗 / 資源列）
-  styles/index.css  # 水墨青玉風格樣式
+src/game/
+  content/     # 資料：items / paths / gathering / combat 內容定義
+  crafting/    # 煉製：categoryRules / nameGen / emojiMap / namedChains / provider
+  xp.ts        # OSRS 經驗曲線
+  stats.ts     # 加成聚合、修煉速率、戰鬥數值衍生
+  effects.ts   # 丹藥/消耗品效果
+  combatEngine.ts  # 獵場/秘境戰鬥結算
+  store.ts     # zustand：修煉/採集/煉製/戰鬥/突破/輪回 核心邏輯
+  formulas.ts / realms.ts / elements.ts / events.ts / save.ts
+src/components/
+  panels/      # 修煉/鬥戰/採集/煉製/儲物/圖鑑/洞府 七大分頁
+  ResourceBar / LogPanel / OfflineModal / ui/labels
 ```
 
-## 後續可擴充方向
+## 後續可擴充
 
-煉丹系統、鬥法戰鬥、秘境探索、宗門 / NPC、天劫小遊戲、成就系統、多套功法流派等。
+二波修練體系（符修／巫蠱）、更多獵場秘境、成就系統、接真 LLM 煉製、渡劫玩法等。

@@ -1,7 +1,8 @@
 import type { GameState } from './types'
+import { registerItem } from './content/items'
 
-const SAVE_KEY = 'infinite-cultivation-save-v1'
-export const SAVE_VERSION = 1
+const SAVE_KEY = 'infinite-cultivation-save-v2'
+export const SAVE_VERSION = 2
 
 export function createInitialState(): GameState {
   const now = Date.now()
@@ -14,15 +15,32 @@ export function createInitialState(): GameState {
     techniqueLevel: 0,
     spiritRootLevel: 0,
     reincarnations: 0,
+    gatherXp: {},
+    craftXp: {},
+    pathXp: {},
+    techMastery: {},
+    recipeMastery: {},
+    activePathId: 'lingxiu',
+    activeTechId: 'lx_tuna',
+    activeGatherId: undefined,
+    discovered: {},
+    discoveredItems: {},
+    inventory: {},
+    equipped: {},
+    buffs: [],
+    permaSpeedPct: 0,
+    pendingBreakthroughPct: 0,
+    combat: {
+      mode: 'idle',
+      waveIndex: 0,
+      enemyHp: 0,
+      playerHp: 100,
+      cooldownUntil: 0,
+    },
     lastTick: now,
     createdAt: now,
     log: [
-      {
-        id: 1,
-        time: now,
-        text: '你睜開雙眼，靈台一片清明，踏上了漫漫修仙路。',
-        kind: 'info',
-      },
+      { id: 1, time: now, text: '你睜開雙眼，靈台一片清明，踏上了漫漫修仙路。', kind: 'info' },
     ],
   }
 }
@@ -37,7 +55,7 @@ export function saveGame(state: GameState): void {
     const payload: SaveShape = { version: SAVE_VERSION, state: { ...state, lastTick: Date.now() } }
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload))
   } catch {
-    // localStorage 不可用時忽略（無痕模式等）
+    // ignore
   }
 }
 
@@ -47,8 +65,10 @@ export function loadGame(): GameState | null {
     if (!raw) return null
     const parsed = JSON.parse(raw) as SaveShape
     if (!parsed || parsed.version !== SAVE_VERSION || !parsed.state) return null
-    // 合併預設，避免舊存檔缺欄位
-    return { ...createInitialState(), ...parsed.state }
+    const state = { ...createInitialState(), ...parsed.state }
+    // 重新登錄玩家發現的物品，讓 getItemDef 能查到
+    for (const def of Object.values(state.discoveredItems ?? {})) registerItem(def)
+    return state
   } catch {
     return null
   }

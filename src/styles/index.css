@@ -463,3 +463,525 @@ body {
     max-height: 320px;
   }
 }
+
+/* ===== 分頁導覽 ===== */
+.tab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.tab-btn {
+  flex: 1 1 auto;
+  min-width: 72px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 6px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.tab-btn:hover {
+  color: var(--ink);
+  border-color: var(--jade-deep);
+}
+.tab-btn.active {
+  background: linear-gradient(120deg, rgba(95, 214, 163, 0.18), rgba(109, 179, 242, 0.12));
+  border-color: var(--jade);
+  color: var(--jade);
+}
+.tab-icon {
+  font-size: 1.2rem;
+}
+.tab-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+}
+
+.res-value.jade {
+  color: var(--jade);
+  font-size: 1rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.hint b {
+  color: var(--jade);
+}
+
+/* ===== 修練體系 ===== */
+.path-block {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.path-block:last-child {
+  border-bottom: none;
+}
+.path-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.path-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--jade);
+  letter-spacing: 0.1em;
+}
+.path-lv {
+  font-size: 0.8rem;
+  color: var(--azure);
+}
+.path-role {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.tech-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tech-btn {
+  text-align: left;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all 0.12s ease;
+}
+.tech-btn:hover:not(:disabled) {
+  border-color: var(--jade-deep);
+}
+.tech-btn.active {
+  border-color: var(--jade);
+  background: rgba(95, 214, 163, 0.12);
+}
+.tech-btn.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.tech-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.tech-info {
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+}
+.tech-cost {
+  color: var(--gold);
+}
+.live-dot {
+  color: var(--jade);
+  font-size: 0.72rem;
+  margin-left: 6px;
+}
+.buff-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(95, 214, 163, 0.15);
+  color: var(--jade);
+  font-size: 0.72rem;
+}
+
+/* ===== 技能列 ===== */
+.skill-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.skill-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.skill-lv {
+  font-size: 0.82rem;
+  color: var(--azure);
+}
+.skill-xp-track {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.skill-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--azure), var(--jade));
+  transition: width 0.3s ease;
+}
+
+/* ===== 戰鬥 ===== */
+.combat-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.cstat {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+.cstat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+}
+.cstat-value {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.hp-track {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d0504e, var(--danger));
+  transition: width 0.2s linear;
+}
+.combat-live {
+  margin-top: 14px;
+}
+.enemy-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(224, 96, 94, 0.08);
+  border: 1px solid rgba(224, 96, 94, 0.2);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.enemy-emoji {
+  font-size: 2rem;
+}
+.enemy-info {
+  flex: 1;
+}
+.enemy-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.elem-tag {
+  margin-left: 8px;
+  font-size: 0.74rem;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+}
+.enemy-hp-track {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.enemy-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b84a48, var(--danger));
+  transition: width 0.2s linear;
+}
+.cooldown {
+  color: var(--danger);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 10px;
+}
+.area-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.area-row:last-child {
+  border-bottom: none;
+}
+.area-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.area-desc {
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+.area-enemies {
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+/* ===== 煉製 ===== */
+.craft-slots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 16px 0;
+}
+.craft-plus {
+  font-size: 1.6rem;
+  color: var(--ink-dim);
+}
+.craft-slot {
+  width: 110px;
+  height: 110px;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.craft-slot.filled {
+  border-style: solid;
+  border-color: var(--jade);
+  background: rgba(95, 214, 163, 0.08);
+  color: var(--ink);
+}
+.slot-emoji {
+  font-size: 2.4rem;
+}
+.slot-name {
+  font-size: 0.8rem;
+}
+.slot-empty {
+  font-size: 0.82rem;
+}
+.craft-actions {
+  display: flex;
+  gap: 10px;
+}
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+.palette-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 4px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.12s ease;
+}
+.palette-item:hover {
+  border-color: var(--jade);
+  transform: translateY(-2px);
+}
+.pi-emoji {
+  font-size: 1.6rem;
+}
+.pi-name {
+  font-size: 0.72rem;
+  text-align: center;
+}
+.pi-count {
+  font-size: 0.7rem;
+  color: var(--gold);
+}
+
+/* ===== 儲物袋 / 法寶 ===== */
+.equip-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.equip-slot {
+  text-align: center;
+}
+.equip-slot-label {
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
+.equip-filled {
+  width: 100%;
+  background: rgba(232, 196, 105, 0.08);
+  border: 1px solid rgba(232, 196, 105, 0.3);
+  border-radius: 10px;
+  padding: 8px 4px;
+  cursor: pointer;
+  color: var(--ink);
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.equip-filled span:first-child {
+  font-size: 1.5rem;
+}
+.equip-name {
+  font-size: 0.72rem;
+}
+.equip-bonus {
+  font-size: 0.66rem;
+  color: var(--gold);
+}
+.equip-empty {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 18px 4px;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.inv-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+.inv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.inv-emoji {
+  font-size: 1.6rem;
+}
+.inv-count {
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+.inv-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.inv-cat {
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+}
+.inv-effect {
+  font-size: 0.72rem;
+  color: var(--jade);
+  margin-top: 2px;
+}
+.inv-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.btn-mini {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.76rem;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(95, 214, 163, 0.1);
+  color: var(--jade);
+  cursor: pointer;
+}
+.btn-mini:hover {
+  background: rgba(95, 214, 163, 0.2);
+}
+
+/* ===== 圖鑑 ===== */
+.codex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.codex-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 4px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.codex-item.named {
+  border-color: var(--gold);
+  background: rgba(232, 196, 105, 0.08);
+}
+.codex-emoji {
+  font-size: 1.8rem;
+}
+.codex-name {
+  font-size: 0.74rem;
+}
+.codex-cat {
+  font-size: 0.66rem;
+  color: var(--ink-dim);
+}
+.codex-star {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+
+/* ===== 洞府技藝 ===== */
+.craft-skill-row {
+  display: flex;
+  gap: 10px;
+}
+.craft-skill {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+.log-combat {
+  border-left-color: var(--danger);
+  color: #f2d0cf;
+}
