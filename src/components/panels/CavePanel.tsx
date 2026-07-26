@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useGame } from '../../game/store'
 import {
   techniqueUpgradeCost,
@@ -17,7 +16,6 @@ export function CavePanel() {
   const upgradeTechnique = useGame((s) => s.upgradeTechnique)
   const upgradeSpiritRoot = useGame((s) => s.upgradeSpiritRoot)
   const reincarnate = useGame((s) => s.reincarnate)
-  const resetGame = useGame((s) => s.resetGame)
 
   const techCost = techniqueUpgradeCost(state.techniqueLevel)
   const rootCost = spiritRootUpgradeCost(state.spiritRootLevel)
@@ -93,103 +91,8 @@ export function CavePanel() {
             </p>
           )}
         </div>
-        <button
-          className="btn btn-reset"
-          onClick={() => {
-            if (confirm('確定要重置遊戲嗎？所有進度（含道韻與圖鑑）將清空。')) resetGame()
-          }}
-        >
-          重置遊戲
-        </button>
+        <p className="hint settings-pointer">存檔匯出／匯入、音訊與重置請至右上角 ⚙️ 設定。</p>
       </section>
-
-      <SaveManager />
     </>
-  )
-}
-
-function SaveManager() {
-  const exportSaveCode = useGame((s) => s.exportSaveCode)
-  const importSaveCode = useGame((s) => s.importSaveCode)
-  const [code, setCode] = useState('')
-  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
-
-  function handleExport() {
-    const data = exportSaveCode()
-    setCode(data)
-    navigator.clipboard?.writeText(data).then(
-      () => setMsg({ text: '存檔代碼已複製到剪貼簿。', ok: true }),
-      () => setMsg({ text: '已產生存檔代碼，請手動複製。', ok: true }),
-    )
-  }
-
-  function handleDownload() {
-    const data = exportSaveCode()
-    const blob = new Blob([data], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    const stamp = new Date().toISOString().slice(0, 10)
-    a.href = url
-    a.download = `無限修仙-存檔-${stamp}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
-    setMsg({ text: '存檔檔案已下載。', ok: true })
-  }
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const text = await file.text()
-    setCode(text.trim())
-    setMsg({ text: '已讀入檔案，請按「匯入存檔」套用。', ok: true })
-    e.target.value = ''
-  }
-
-  function handleImport() {
-    if (!confirm('匯入將覆蓋目前進度，確定要繼續嗎？')) return
-    const result = importSaveCode(code)
-    if (result.ok) {
-      setMsg({ text: '匯入成功！進度已還原。', ok: true })
-      setCode('')
-    } else {
-      setMsg({ text: result.error ?? '匯入失敗。', ok: false })
-    }
-  }
-
-  return (
-    <section className="panel">
-      <h2>存檔管理</h2>
-      <p className="hint">
-        存檔平時存在此瀏覽器。匯出後可備份或搬到其他裝置／瀏覽器繼續玩。
-      </p>
-
-      <div className="save-actions">
-        <button className="btn btn-buy" onClick={handleExport}>
-          匯出（複製）
-        </button>
-        <button className="btn btn-buy" onClick={handleDownload}>
-          下載存檔
-        </button>
-        <label className="btn btn-buy file-label">
-          選擇檔案
-          <input type="file" accept=".txt,.json,text/plain" onChange={handleFile} hidden />
-        </label>
-      </div>
-
-      <textarea
-        className="save-textarea"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="在此貼上存檔代碼以匯入，或先按上方「匯出」產生代碼。"
-        spellCheck={false}
-        rows={4}
-      />
-
-      <button className="btn btn-reincarnate" disabled={!code.trim()} onClick={handleImport}>
-        匯入存檔
-      </button>
-
-      {msg && <p className={'save-msg ' + (msg.ok ? 'ok' : 'err')}>{msg.text}</p>}
-    </section>
   )
 }

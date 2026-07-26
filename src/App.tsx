@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useGameLoop } from './game/useGameLoop'
 import { initAudioUnlock } from './game/audio'
-import { AudioControl } from './components/AudioControl'
+import { SettingsModal } from './components/SettingsModal'
 import { ResourceBar } from './components/ResourceBar'
 import { LogPanel } from './components/LogPanel'
 import { OfflineModal } from './components/OfflineModal'
@@ -28,6 +28,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 export default function App() {
   useGameLoop()
   const [tab, setTab] = useState<TabId>('cultivate')
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     initAudioUnlock()
@@ -36,9 +37,16 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <button
+          className="gear-btn"
+          onClick={() => setSettingsOpen(true)}
+          title="設定"
+          aria-label="設定"
+        >
+          ⚙️
+        </button>
         <h1>無限修仙</h1>
         <p className="subtitle">吐納天地靈氣，一步步踏破境界，證道飛升</p>
-        <AudioControl />
       </header>
 
       <ResourceBar />
@@ -72,6 +80,7 @@ export default function App() {
       </main>
 
       <OfflineModal />
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   )
 }

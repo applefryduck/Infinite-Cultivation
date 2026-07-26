@@ -17,9 +17,15 @@ export type SfxName =
 
 const SETTINGS_KEY = 'infinite-cultivation-audio'
 
-interface AudioSettings {
-  muted: boolean
-  volume: number // 0..1
+export interface AudioSettings {
+  muted: boolean // 音效靜音
+  volume: number // 音效音量 0..1
+  musicMuted: boolean // 音樂靜音
+  musicVolume: number // 音樂音量 0..1
+}
+
+function clamp01(n: unknown, fallback: number): number {
+  return typeof n === 'number' ? Math.min(1, Math.max(0, n)) : fallback
 }
 
 function loadSettings(): AudioSettings {
@@ -29,13 +35,15 @@ function loadSettings(): AudioSettings {
       const parsed = JSON.parse(raw) as Partial<AudioSettings>
       return {
         muted: parsed.muted ?? false,
-        volume: typeof parsed.volume === 'number' ? Math.min(1, Math.max(0, parsed.volume)) : 0.6,
+        volume: clamp01(parsed.volume, 0.6),
+        musicMuted: parsed.musicMuted ?? false,
+        musicVolume: clamp01(parsed.musicVolume, 0.35),
       }
     }
   } catch {
     // ignore
   }
-  return { muted: false, volume: 0.6 }
+  return { muted: false, volume: 0.6, musicMuted: false, musicVolume: 0.35 }
 }
 
 let settings = loadSettings()
@@ -65,11 +73,12 @@ function ensureCtx(): AudioContext | null {
   return ctx
 }
 
-/** 在第一次使用者互動時解鎖音訊 */
+/** 在第一次使用者互動時解鎖音訊並開始播放 BGM */
 export function initAudioUnlock(): void {
   if (typeof window === 'undefined') return
   const unlock = () => {
     ensureCtx()
+    startMusic()
     window.removeEventListener('pointerdown', unlock)
     window.removeEventListener('keydown', unlock)
   }
@@ -96,6 +105,54 @@ export function setVolume(volume: number): void {
   if (masterGain && ctx && !settings.muted) {
     masterGain.gain.setTargetAtTime(v, ctx.currentTime, 0.01)
   }
+}
+
+// ---- 背景音樂（HTMLAudioElement 串流，避免將整首解碼進記憶體）----
+
+// public/ 內的檔案由 base 路徑提供（支援 GitHub Pages 子路徑部署）
+const MUSIC_SRC = `${import.meta.env.BASE_URL}audio/bamboo-mist-path.mp3`
+let music: HTMLAudioElement | null = null
+
+function ensureMusic(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null
+  if (!music) {
+    music = new Audio(MUSIC_SRC)
+    music.loop = true
+    music.preload = 'auto'
+    music.volume = settings.musicMuted ? 0 : settings.musicVolume
+  }
+  return music
+}
+
+/** 開始播放 BGM（需在使用者互動後呼叫，失敗時安全略過） */
+export function startMusic(): void {
+  const el = ensureMusic()
+  if (!el || settings.musicMuted) return
+  el.volume = settings.musicVolume
+  void el.play().catch(() => {
+    /* 尚未取得播放許可，等下次互動 */
+  })
+}
+
+export function setMusicMuted(muted: boolean): void {
+  settings = { ...settings, musicMuted: muted }
+  saveSettings()
+  const el = ensureMusic()
+  if (!el) return
+  if (muted) {
+    el.pause()
+  } else {
+    el.volume = settings.musicVolume
+    void el.play().catch(() => {})
+  }
+}
+
+export function setMusicVolume(volume: number): void {
+  const v = Math.min(1, Math.max(0, volume))
+  settings = { ...settings, musicVolume: v }
+  saveSettings()
+  const el = ensureMusic()
+  if (el && !settings.musicMuted) el.volume = v
 }
 
 interface ToneOptions {

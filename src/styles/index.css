@@ -1061,3 +1061,154 @@ body {
 .save-msg.err {
   color: var(--danger);
 }
+
+/* ===== 齒輪設定 ===== */
+.app-header {
+  position: relative;
+}
+.gear-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 11px;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.25s ease;
+}
+.gear-btn:hover {
+  border-color: var(--jade);
+  transform: rotate(45deg);
+}
+
+.settings-modal {
+  max-width: 460px;
+  text-align: left;
+}
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.settings-head h2 {
+  margin: 0;
+}
+.settings-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px 9px;
+  line-height: 1;
+}
+.settings-close:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.settings-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.settings-tab {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 8px 4px;
+  transition: all 0.15s ease;
+}
+.settings-tab:hover {
+  color: var(--ink);
+}
+.settings-tab.active {
+  background: rgba(95, 214, 163, 0.12);
+  border-color: var(--jade);
+  color: var(--jade);
+}
+.settings-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child {
+  border-bottom: none;
+}
+.setting-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.setting-desc {
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+.setting-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.settings-modal .save-msg {
+  margin-bottom: 0;
+}
+.btn-reset.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.settings-pointer {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 0.76rem;
+}
+
+/* 音效控制（沿用於設定內） */
+.audio-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s ease;
+}
+.audio-btn:hover {
+  border-color: var(--jade);
+}
+.audio-slider {
+  width: 100px;
+  accent-color: var(--jade);
+  cursor: pointer;
+}
+.audio-slider:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .gear-btn {
+    top: -4px;
+    padding: 6px 9px;
+  }
+  .audio-slider {
+    width: 80px;
+  }
+}
