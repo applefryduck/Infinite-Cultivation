@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useGameLoop } from './game/useGameLoop'
-import { initAudioUnlock } from './game/audio'
+import { initAudioUnlock, initMusicVisibility } from './game/audio'
 import { SettingsModal } from './components/SettingsModal'
 import { ResourceBar } from './components/ResourceBar'
 import { LogPanel } from './components/LogPanel'
@@ -32,6 +32,7 @@ export default function App() {
 
   useEffect(() => {
     initAudioUnlock()
+    initMusicVisibility()
   }, [])
 
   return (

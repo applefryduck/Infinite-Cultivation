@@ -6,6 +6,7 @@ import {
   setVolume,
   setMusicMuted,
   setMusicVolume,
+  setBackgroundMusic,
   playSfx,
 } from '../game/audio'
 
@@ -50,6 +51,7 @@ function AudioSettings() {
   const [sfxVol, setSfxVol] = useState(initial.volume)
   const [bgmMuted, setBgmMuted] = useState(initial.musicMuted)
   const [bgmVol, setBgmVol] = useState(initial.musicVolume)
+  const [bgPlay, setBgPlay] = useState(initial.backgroundMusic)
 
   return (
     <>
@@ -83,6 +85,27 @@ function AudioSettings() {
               setBgmVol(v)
             }}
           />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-name">背景播放</div>
+          <div className="setting-desc">切換到其他分頁時仍繼續播放音樂</div>
+        </div>
+        <div className="setting-ctrl">
+          <button
+            className={'toggle' + (bgPlay ? ' on' : '')}
+            onClick={() => {
+              const next = !bgPlay
+              setBackgroundMusic(next)
+              setBgPlay(next)
+            }}
+            role="switch"
+            aria-checked={bgPlay}
+          >
+            <span className="toggle-knob" />
+          </button>
         </div>
       </div>
 

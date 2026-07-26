@@ -23,6 +23,7 @@ export function createInitialState(): GameState {
     activePathId: 'lingxiu',
     activeTechId: 'lx_tuna',
     activeGatherId: undefined,
+    materialChoice: {},
     discovered: {},
     discoveredItems: {},
     inventory: {},

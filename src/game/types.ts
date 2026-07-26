@@ -55,6 +55,8 @@ export interface GameState {
   activePathId: string
   activeTechId: string
   activeGatherId?: string // 可與修煉並行
+  /** 玩家為各修煉方式選定的素材：`${techId}:${inputIndex}` -> itemId */
+  materialChoice: Record<string, string>
 
   // 煉製發現
   discovered: Record<string, string> // recipeKey -> resultItemId

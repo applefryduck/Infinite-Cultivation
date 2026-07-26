@@ -22,6 +22,7 @@ export interface AudioSettings {
   volume: number // 音效音量 0..1
   musicMuted: boolean // 音樂靜音
   musicVolume: number // 音樂音量 0..1
+  backgroundMusic: boolean // 切到其他分頁時是否繼續播放音樂
 }
 
 function clamp01(n: unknown, fallback: number): number {
@@ -38,12 +39,13 @@ function loadSettings(): AudioSettings {
         volume: clamp01(parsed.volume, 0.6),
         musicMuted: parsed.musicMuted ?? false,
         musicVolume: clamp01(parsed.musicVolume, 0.35),
+        backgroundMusic: parsed.backgroundMusic ?? false,
       }
     }
   } catch {
     // ignore
   }
-  return { muted: false, volume: 0.6, musicMuted: false, musicVolume: 0.35 }
+  return { muted: false, volume: 0.6, musicMuted: false, musicVolume: 0.35, backgroundMusic: false }
 }
 
 let settings = loadSettings()
@@ -153,6 +155,29 @@ export function setMusicVolume(volume: number): void {
   saveSettings()
   const el = ensureMusic()
   if (el && !settings.musicMuted) el.volume = v
+}
+
+export function setBackgroundMusic(enabled: boolean): void {
+  settings = { ...settings, backgroundMusic: enabled }
+  saveSettings()
+  // 若目前正處於背景且改為允許，立即續播
+  if (enabled && document.hidden && !settings.musicMuted) {
+    void ensureMusic()?.play().catch(() => {})
+  }
+}
+
+/** 分頁切到背景時，依設定決定是否暫停音樂 */
+export function initMusicVisibility(): void {
+  if (typeof document === 'undefined') return
+  document.addEventListener('visibilitychange', () => {
+    const el = music
+    if (!el || settings.musicMuted) return
+    if (document.hidden) {
+      if (!settings.backgroundMusic) el.pause()
+    } else if (el.paused) {
+      void el.play().catch(() => {})
+    }
+  })
 }
 
 interface ToneOptions {

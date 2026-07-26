@@ -1212,3 +1212,227 @@ body {
     width: 80px;
   }
 }
+
+/* ===== 開關 (toggle) ===== */
+.toggle {
+  width: 46px;
+  height: 26px;
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.toggle.on {
+  background: rgba(95, 214, 163, 0.3);
+  border-color: var(--jade);
+}
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.toggle.on .toggle-knob {
+  transform: translateX(20px);
+  background: var(--jade);
+}
+
+/* ===== 修煉素材選擇 ===== */
+.tech-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+.tech-wrap.active {
+  border-color: var(--jade);
+}
+.tech-wrap .tech-btn {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+.tech-wrap .tech-btn.active {
+  background: rgba(95, 214, 163, 0.12);
+}
+.mat-row {
+  padding: 8px 12px 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border-top: 1px solid var(--border);
+}
+.mat-current {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+}
+.mat-label {
+  color: var(--gold);
+}
+.mat-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+.mat-name.none {
+  color: var(--danger);
+  font-weight: 400;
+}
+.mat-rate {
+  color: var(--ink-dim);
+}
+.mat-stock {
+  margin-left: auto;
+  color: var(--jade);
+  font-variant-numeric: tabular-nums;
+}
+.mat-stock.empty {
+  color: var(--danger);
+}
+.mat-eta {
+  color: var(--ink-dim);
+  margin-left: 2px;
+}
+.mat-toggle {
+  margin-top: 7px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--azure);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.73rem;
+  padding: 4px 9px;
+}
+.mat-toggle:hover {
+  border-color: var(--azure);
+}
+.mat-options {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mat-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.76rem;
+  padding: 6px 9px;
+  text-align: left;
+  transition: border-color 0.12s ease;
+}
+.mat-option:hover:not(:disabled) {
+  border-color: var(--jade);
+}
+.mat-option.chosen {
+  border-color: var(--jade);
+  background: rgba(95, 214, 163, 0.12);
+}
+.mat-option.disabled,
+.mat-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.mo-emoji {
+  font-size: 1.1rem;
+}
+.mo-name {
+  font-weight: 600;
+}
+.mo-tier {
+  color: var(--ink-dim);
+  font-size: 0.7rem;
+}
+.mo-eff {
+  color: var(--gold);
+  font-size: 0.7rem;
+}
+.mo-count {
+  margin-left: auto;
+  color: var(--jade);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 技能經驗資訊 ===== */
+.skill-xp-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  margin: -6px 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 技能樹（預留） ===== */
+.skill-tree {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.skill-tree-head {
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.skill-tree-head::-webkit-details-marker {
+  display: none;
+}
+.skill-tree-head:hover {
+  color: var(--ink);
+}
+.soon-tag {
+  font-size: 0.66rem;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: rgba(109, 179, 242, 0.15);
+  color: var(--azure);
+}
+.skill-tree-body {
+  padding-top: 10px;
+}
+.tree-placeholder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+  gap: 8px;
+}
+.tree-node {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  padding: 12px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tree-node.locked {
+  opacity: 0.55;
+}
+.tree-node-icon {
+  font-size: 1.1rem;
+}
+.tree-node-name {
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+}

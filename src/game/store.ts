@@ -19,6 +19,7 @@ import { getItemDef, registerItem } from './content/items'
 import type { ItemDef } from './content/items'
 import { levelForXp } from './xp'
 import { globalSpeedMult, aggregate, combatStats } from './stats'
+import { resolveMaterial, materialEfficiency } from './materials'
 import { offlineProvider, recipeKey } from './crafting/provider'
 import { applyConsumable, pruneBuffs } from './effects'
 import { combatTick } from './combatEngine'
@@ -70,19 +71,37 @@ function accrueCultivation(state: GameState, seconds: number, now: number): void
 
   let sustained = seconds
   if (tech.inputs.length > 0) {
+    // 解析每個需求實際使用的素材（類別型可由玩家指定）
+    const resolved = tech.inputs.map((need, i) => ({
+      need,
+      itemId: resolveMaterial(state, tech!.id, i, need),
+    }))
+
     // 計算素材能支撐幾秒
-    for (const inp of tech.inputs) {
-      const avail = inp.itemId === 'spiritStones' ? state.spiritStones : invCount(state, inp.itemId)
-      sustained = Math.min(sustained, avail / inp.perSec)
+    for (const { need, itemId } of resolved) {
+      const avail =
+        itemId === 'spiritStones' ? state.spiritStones : itemId ? invCount(state, itemId) : 0
+      sustained = Math.min(sustained, avail / need.perSec)
     }
     sustained = Math.max(0, sustained)
-    // 消耗素材
-    for (const inp of tech.inputs) {
-      const used = inp.perSec * sustained
-      if (inp.itemId === 'spiritStones') state.spiritStones = Math.max(0, state.spiritStones - used)
-      else addItem(state, inp.itemId, -used)
+
+    // 消耗素材，並取素材品階的效率倍率（取各需求平均）
+    let effSum = 0
+    for (const { need, itemId } of resolved) {
+      const used = need.perSec * sustained
+      if (itemId === 'spiritStones') {
+        state.spiritStones = Math.max(0, state.spiritStones - used)
+        effSum += 1
+      } else if (itemId) {
+        addItem(state, itemId, -used)
+        effSum += materialEfficiency(getItemDef(itemId)?.tier ?? 1)
+      } else {
+        effSum += 1
+      }
     }
-    const gained = rateOf(tech.qiPerSec, tech.id) * sustained
+    const efficiency = resolved.length ? effSum / resolved.length : 1
+
+    const gained = rateOf(tech.qiPerSec, tech.id) * efficiency * sustained
     state.qi += gained
     state.pathXp[path.id] = (state.pathXp[path.id] ?? 0) + tech.qiPerSec * sustained * 0.5
     state.techMastery[tech.id] = (state.techMastery[tech.id] ?? 0) + tech.qiPerSec * sustained * 0.5
@@ -168,6 +187,7 @@ interface Store {
   tick: (deltaMs: number) => void
   setActiveTechnique: (pathId: string, techId: string) => void
   setActiveGather: (actionId: string | undefined) => void
+  setMaterialChoice: (techId: string, index: number, itemId: string) => void
   breakthrough: () => void
   combine: (aId: string, bId: string) => void
   refine: (aId: string) => void
@@ -221,6 +241,13 @@ export const useGame = create<Store>((set, get) => ({
     set((store) => {
       const s = clone(store.state)
       s.activeGatherId = actionId
+      return { state: s }
+    }),
+
+  setMaterialChoice: (techId, index, itemId) =>
+    set((store) => {
+      const s = clone(store.state)
+      s.materialChoice = { ...s.materialChoice, [`${techId}:${index}`]: itemId }
       return { state: s }
     }),
 
