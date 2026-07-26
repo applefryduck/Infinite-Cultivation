@@ -985,3 +985,79 @@ body {
   border-left-color: var(--danger);
   color: #f2d0cf;
 }
+
+/* ===== 音效控制 ===== */
+.audio-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.audio-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s ease;
+}
+.audio-btn:hover {
+  border-color: var(--jade);
+}
+.audio-slider {
+  width: 110px;
+  accent-color: var(--jade);
+  cursor: pointer;
+}
+.audio-slider:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ===== 存檔管理 ===== */
+.save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.save-actions .btn {
+  flex: 1 1 auto;
+}
+.file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.save-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  padding: 10px;
+  resize: vertical;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.save-textarea:focus {
+  outline: none;
+  border-color: var(--jade);
+}
+.save-msg {
+  font-size: 0.8rem;
+  margin: 10px 0 0;
+  text-align: center;
+}
+.save-msg.ok {
+  color: var(--jade);
+}
+.save-msg.err {
+  color: var(--danger);
+}

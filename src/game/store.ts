@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { GameState, LogEntry } from './types'
-import { createInitialState, loadGame, saveGame, clearSave } from './save'
+import { createInitialState, loadGame, saveGame, clearSave, exportSave, importSave } from './save'
+import { playSfx } from './audio'
 import {
   breakthroughCost,
   breakthroughChance,
@@ -141,7 +142,7 @@ function computeOffline(state: GameState): { seconds: number; qi: number } | nul
   const before = state.qi
   accrueCultivation(state, capped, now)
   accrueGathering(state, capped)
-  combatTick(state, capped, now)
+  combatTick(state, capped, now, false) // 離線結算不播音效
   return { seconds: Math.floor(capped), qi: state.qi - before }
 }
 
@@ -181,9 +182,11 @@ interface Store {
   reincarnate: () => void
   resetGame: () => void
   dismissOfflineReport: () => void
+  exportSaveCode: () => string
+  importSaveCode: (code: string) => { ok: boolean; error?: string }
 }
 
-export const useGame = create<Store>((set) => ({
+export const useGame = create<Store>((set, get) => ({
   state: initial,
   offlineReport: initialOffline,
 
@@ -239,10 +242,12 @@ export const useGame = create<Store>((set) => ({
         const reward = Math.floor(breakthroughReward(s.stageIndex - 1) * spiritRootMultiplier(s.spiritRootLevel))
         s.spiritStones += reward
         pushLog(s, `突破成功！境界更進一步，獲得靈石 ${reward} 枚。`, 'breakthrough')
+        playSfx('breakthrough')
       } else {
         const extraLoss = Math.floor(cost * 0.3 * (1 - failLossReduce))
         s.qi = Math.max(0, s.qi - extraLoss)
         pushLog(s, '突破失敗，你走火入魔，修為受損。', 'bad')
+        playSfx('fail')
       }
       return { state: s }
     }),
@@ -289,6 +294,7 @@ export const useGame = create<Store>((set) => ({
       addItem(s, itemId, -1)
       const msg = applyConsumable(s, def, Date.now())
       pushLog(s, msg, 'good')
+      playSfx('levelup')
       return { state: s }
     }),
 
@@ -303,6 +309,7 @@ export const useGame = create<Store>((set) => ({
       addItem(s, itemId, -1)
       s.equipped[def.slot] = itemId
       pushLog(s, `裝備了 ${def.name}。`, 'good')
+      playSfx('click')
       return { state: s }
     }),
 
@@ -344,6 +351,7 @@ export const useGame = create<Store>((set) => ({
       if (s.spiritStones < cost) return {}
       s.spiritStones -= cost
       s.techniqueLevel += 1
+      playSfx('levelup')
       return { state: s }
     }),
 
@@ -354,6 +362,7 @@ export const useGame = create<Store>((set) => ({
       if (s.spiritStones < cost) return {}
       s.spiritStones -= cost
       s.spiritRootLevel += 1
+      playSfx('levelup')
       return { state: s }
     }),
 
@@ -380,6 +389,20 @@ export const useGame = create<Store>((set) => ({
   },
 
   dismissOfflineReport: () => set({ offlineReport: null }),
+
+  exportSaveCode: () => exportSave(get().state),
+
+  importSaveCode: (code) => {
+    const result = importSave(code)
+    if (!result.ok || !result.state) return { ok: false, error: result.error }
+    const s = result.state
+    s.lastTick = Date.now() // 匯入後不重複計算離線收益
+    pushLog(s, '存檔已匯入，接續前世修行。', 'breakthrough')
+    saveGame(s)
+    set({ state: s, offlineReport: null })
+    playSfx('discover')
+    return { ok: true }
+  },
 }))
 
 // finishCraft：登錄發現、給經驗、加入儲物、首發獎勵
@@ -414,8 +437,10 @@ function finishCraft(
     s.spiritStones += reward
     if (named?.dao) s.dao += named.dao
     pushLog(s, `【新發現】${item.emoji} ${item.name}！首次煉成，獲得靈石 ${reward}${named?.dao ? `、道韻 ${named.dao}` : ''}。`, 'breakthrough')
+    playSfx('discover')
   } else {
     pushLog(s, `煉成 ${item.emoji} ${item.name} ×${yieldQty}。`, 'good')
+    playSfx('craft')
   }
 }
 

@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGameLoop } from './game/useGameLoop'
+import { initAudioUnlock } from './game/audio'
+import { AudioControl } from './components/AudioControl'
 import { ResourceBar } from './components/ResourceBar'
 import { LogPanel } from './components/LogPanel'
 import { OfflineModal } from './components/OfflineModal'
@@ -27,11 +29,16 @@ export default function App() {
   useGameLoop()
   const [tab, setTab] = useState<TabId>('cultivate')
 
+  useEffect(() => {
+    initAudioUnlock()
+  }, [])
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>無限修仙</h1>
         <p className="subtitle">吐納天地靈氣，一步步踏破境界，證道飛升</p>
+        <AudioControl />
       </header>
 
       <ResourceBar />

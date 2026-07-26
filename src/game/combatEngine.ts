@@ -6,6 +6,7 @@ import { PATH_MAP } from './content/paths'
 import { elementMultiplier, type FiveElement } from './elements'
 import { combatStats, aggregate } from './stats'
 import { applyConsumable } from './effects'
+import { playSfx } from './audio'
 
 export interface CombatLog {
   text: string
@@ -65,8 +66,9 @@ function grantKillRewards(state: GameState, enemy: Enemy): void {
 /**
  * 逐 tick 推進戰鬥（獵場/秘境），支援離線大 delta 的多場結算。
  */
-export function combatTick(state: GameState, seconds: number, now: number): CombatLog[] {
+export function combatTick(state: GameState, seconds: number, now: number, live = true): CombatLog[] {
   const logs: CombatLog[] = []
+  let kills = 0
   const c = state.combat
   if (c.mode === 'idle') return logs
 
@@ -106,6 +108,7 @@ export function combatTick(state: GameState, seconds: number, now: number): Comb
 
     if (c.enemyHp <= 0) {
       grantKillRewards(state, enemy)
+      if (live && kills++ < 3) playSfx('hit') // 離線批次結算不播、連擊也僅前幾次
 
       if (c.mode === 'dungeon') {
         const dj = SECRET_REALMS.find((d) => d.id === c.dungeonId)!
@@ -142,6 +145,7 @@ export function combatTick(state: GameState, seconds: number, now: number): Comb
       c.playerHp = 0
       c.cooldownUntil = now + REVIVE_COOLDOWN_MS
       logs.push({ text: `你不敵 ${enemy.name}，重傷撤退，需靜養片刻。`, kind: 'bad' })
+      if (live) playSfx('defeat')
       c.enemyId = undefined
       c.enemyHp = 0
       break
