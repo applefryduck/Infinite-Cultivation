@@ -56,6 +56,9 @@ export interface GameState {
   techMastery: Record<string, number> // techId -> xp
   recipeMastery: Record<string, number> // itemId -> xp
 
+  /** 技能樹已投入等級：nodeId -> rank */
+  skillNodes: Record<string, number>
+
   // active 動作
   activePathId: string
   activeTechId: string

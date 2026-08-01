@@ -23,6 +23,7 @@ export function createInitialState(): GameState {
     pathXp: {},
     techMastery: {},
     recipeMastery: {},
+    skillNodes: {},
     activePathId: 'lingxiu',
     activeTechId: 'lx_tuna',
     activeGatherId: undefined,

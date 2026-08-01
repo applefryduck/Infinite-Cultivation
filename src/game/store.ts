@@ -17,11 +17,13 @@ import {
 import { getStageInfo } from './realms'
 import { PATH_MAP, getTechnique } from './content/paths'
 import { getGatherAction } from './content/gathering'
-import { getItemDef, registerItem } from './content/items'
+import { getItemDef, registerItem, allItems } from './content/items'
 import type { ItemDef } from './content/items'
 import { levelForXp } from './xp'
-import { globalSpeedMult, aggregate, combatStats } from './stats'
+import { globalSpeedMult, aggregate, combatStats, cultivationRate } from './stats'
 import { resolveMaterial, materialEfficiency } from './materials'
+import { skillBonuses, effectiveCycle } from './skillEffects'
+import { SKILL_TREES, pointsFromLevel, spentPoints, isNodeUnlocked, getNode } from './content/skillTrees'
 import { rollTribulationChoices, tribulationChance, getTribulation } from './content/tribulations'
 import { allAttrValues } from './stats'
 import { offlineProvider, recipeKey } from './crafting/provider'
@@ -59,6 +61,12 @@ function trainAttrs(state: GameState, tech: { trains?: { attr: string; per: numb
   for (const t of tech.trains) {
     state.attrTrain[t.attr] = (state.attrTrain[t.attr] ?? 0) + t.per * seconds * mult
   }
+}
+
+/** 取得某產業技能的等級（採集或製作） */
+export function skillLevelOf(state: GameState, skillId: string): number {
+  const xp = state.gatherXp[skillId] ?? state.craftXp[skillId] ?? 0
+  return levelForXp(xp)
 }
 
 function addItem(state: GameState, id: string, qty: number): void {
@@ -148,9 +156,36 @@ function accrueGathering(state: GameState, seconds: number): void {
   const { skill, action } = found
   const skillLevel = levelForXp(state.gatherXp[skill.id] ?? 0)
   if (skillLevel < action.unlockLevel) return
-  const cycles = seconds / action.cycleSec
-  addItem(state, action.produces, action.qtyPerCycle * cycles)
-  state.gatherXp[skill.id] = (state.gatherXp[skill.id] ?? 0) + action.xp * cycles
+  const sb = skillBonuses(state, skill.id)
+  const cycleSec = effectiveCycle(action.cycleSec, sb.gatherSpeed)
+  const cycles = seconds / cycleSec
+
+  // 產量：基礎 × (1+豐收) × (1+雙倍機率期望值)
+  const yieldMult = (1 + sb.gatherYield) * (1 + sb.gatherDouble)
+  addItem(state, action.produces, action.qtyPerCycle * cycles * yieldMult)
+
+  // 慧眼：機率額外掉落高一階素材
+  if (sb.gatherRare > 0) {
+    const better = nextTierMaterial(action.produces)
+    if (better) addItem(state, better, action.qtyPerCycle * cycles * sb.gatherRare)
+  }
+
+  state.gatherXp[skill.id] = (state.gatherXp[skill.id] ?? 0) + action.xp * cycles * (1 + sb.gatherXp)
+
+  // 道法頂點：採集同時獲得修為
+  if (sb.gatherQi > 0) {
+    state.qi += cultivationRate(state, Date.now()) * seconds * sb.gatherQi
+  }
+}
+
+/** 找出同類別中高一階的素材（供慧眼分支使用） */
+function nextTierMaterial(itemId: string): string | undefined {
+  const cur = getItemDef(itemId)
+  if (!cur) return undefined
+  const candidates = allItems()
+    .filter((d) => d.category === cur.category && d.tier === cur.tier + 1)
+    .sort((a, b) => a.id.localeCompare(b.id))
+  return candidates[0]?.id
 }
 
 // ---- 隨機奇遇 ----
@@ -203,6 +238,8 @@ interface Store {
   setActiveGather: (actionId: string | undefined) => void
   setMaterialChoice: (techId: string, index: number, itemId: string) => void
   allocAttr: (attr: string) => void
+  investSkillNode: (nodeId: string) => void
+  respecSkill: (skillId: string) => void
   attemptTribulation: (tribId: string) => void
   craftKnown: (resultItemId: string) => { ok: boolean; error?: string }
   breakthrough: () => void
@@ -275,6 +312,33 @@ export const useGame = create<Store>((set, get) => ({
       s.freeAttrPoints -= 1
       s.attrAlloc[attr] = (s.attrAlloc[attr] ?? 0) + 1
       playSfx('levelup')
+      return { state: s }
+    }),
+
+  investSkillNode: (nodeId) =>
+    set((store) => {
+      const s = clone(store.state)
+      const node = getNode(nodeId)
+      if (!node) return {}
+      const ranks = s.skillNodes ?? {}
+      const cur = ranks[nodeId] ?? 0
+      if (cur >= node.maxRank) return {}
+      if (!isNodeUnlocked(node, ranks)) return {}
+      const total = pointsFromLevel(skillLevelOf(s, node.skillId))
+      if (total - spentPoints(node.skillId, ranks) < node.costPerRank) return {}
+      s.skillNodes = { ...ranks, [nodeId]: cur + 1 }
+      playSfx('levelup')
+      return { state: s }
+    }),
+
+  respecSkill: (skillId) =>
+    set((store) => {
+      const s = clone(store.state)
+      const nodes = SKILL_TREES[skillId] ?? []
+      const ranks = { ...(s.skillNodes ?? {}) }
+      for (const n of nodes) delete ranks[n.id]
+      s.skillNodes = ranks
+      pushLog(s, `重置了「${skillId}」的技能樹，點數已返還。`, 'info')
       return { state: s }
     }),
 
@@ -591,7 +655,9 @@ export const useGame = create<Store>((set, get) => ({
 /** 煉製費用：首次發現免費，之後依品階與境界收取靈石 */
 export function craftFee(state: GameState, item: ItemDef, key: string): number {
   if (!state.discovered[key]) return 0
-  return craftCost(item.tier, state.stageIndex)
+  const skill = item.category === 'artifact' ? 'lianqi' : 'liandan'
+  const reduce = Math.min(0.8, skillBonuses(state, skill).craftCostReduce)
+  return Math.max(1, Math.floor(craftCost(item.tier, state.stageIndex) * (1 - reduce)))
 }
 
 // finishCraft：登錄發現、給經驗、加入儲物、首發獎勵
@@ -617,13 +683,15 @@ function finishCraft(
 
   // 技能經驗
   const craftSkill = item.category === 'artifact' ? 'lianqi' : 'liandan'
+  const sb = skillBonuses(s, craftSkill)
   const xpGain = 10 * item.tier
   s.craftXp[craftSkill] = (s.craftXp[craftSkill] ?? 0) + xpGain
-  s.recipeMastery[item.id] = (s.recipeMastery[item.id] ?? 0) + xpGain
+  s.recipeMastery[item.id] = (s.recipeMastery[item.id] ?? 0) + xpGain * (1 + sb.craftMastery)
 
-  // 產量：受配方精通加成
+  // 產量：受配方精通與「豐產」分支加成
   const masteryLv = levelForXp(s.recipeMastery[item.id] ?? 0)
-  const yieldQty = 1 + Math.floor(masteryLv / 25)
+  let yieldQty = 1 + Math.floor(masteryLv / 25)
+  if (sb.craftYield > 0 && Math.random() < sb.craftYield) yieldQty += 1
   addItem(s, item.id, yieldQty)
 
   if (firstTime) {

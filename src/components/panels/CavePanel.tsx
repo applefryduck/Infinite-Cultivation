@@ -9,7 +9,9 @@ import {
 } from '../../game/formulas'
 import { getStageInfo } from '../../game/realms'
 import { CRAFT_SKILLS } from '../../game/content/gathering'
-import { levelForXp } from '../../game/xp'
+import { levelForXp, levelProgress } from '../../game/xp'
+import { SkillTree } from '../SkillTree'
+import { pointsFromLevel, spentPoints } from '../../game/content/skillTrees'
 
 export function CavePanel() {
   const state = useGame((s) => s.state)
@@ -51,19 +53,31 @@ export function CavePanel() {
         </div>
       </section>
 
-      <section className="panel">
-        <h2>技藝精通</h2>
-        <div className="craft-skill-row">
-          {CRAFT_SKILLS.map((cs) => (
-            <div key={cs.id} className="craft-skill">
-              <span>
+      {CRAFT_SKILLS.map((cs) => {
+        const xp = state.craftXp[cs.id] ?? 0
+        const lv = levelForXp(xp)
+        const avail = pointsFromLevel(lv) - spentPoints(cs.id, state.skillNodes ?? {})
+        return (
+          <section key={cs.id} className="panel">
+            <div className="skill-head">
+              <span className="skill-title">
                 {cs.emoji} {cs.name}
               </span>
-              <span className="skill-lv">Lv.{levelForXp(state.craftXp[cs.id] ?? 0)}</span>
+              <span className="skill-lv">Lv.{lv}</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="skill-xp-track">
+              <div className="skill-xp-fill" style={{ width: `${levelProgress(xp) * 100}%` }} />
+            </div>
+            <details className="skill-tree">
+              <summary className="skill-tree-head">
+                🌳 {cs.name}·技能樹
+                {avail > 0 && <span className="soon-tag point-tag">{avail} 點可用</span>}
+              </summary>
+              <SkillTree skillId={cs.id} kind="craft" />
+            </details>
+          </section>
+        )
+      })}
 
       <section className="panel">
         <div className="reincarnate-box">

@@ -1912,3 +1912,141 @@ button.codex-item:hover {
 .craft-fee strong {
   font-size: 0.88rem;
 }
+
+/* ===== 技能樹（實作版）===== */
+.point-tag {
+  background: rgba(232, 196, 105, 0.15);
+  color: var(--gold);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.tree-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.tree-points {
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+.tree-points.has strong {
+  color: var(--gold);
+  font-size: 1rem;
+}
+.tree-points strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.tree-respec {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 3px 9px;
+}
+.tree-respec:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.tree-hint {
+  margin: 0 0 10px;
+  font-size: 0.7rem;
+}
+.tree-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.tree-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tree-branch-head {
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.08em;
+}
+.tree-node2 {
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 6px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.tree-node2:hover:not(:disabled) {
+  border-color: var(--jade);
+  transform: translateY(-1px);
+}
+.tree-node2:disabled {
+  cursor: not-allowed;
+}
+.tree-node2.locked {
+  opacity: 0.45;
+}
+.tree-node2.partial {
+  border-color: rgba(95, 214, 163, 0.5);
+  background: rgba(95, 214, 163, 0.07);
+}
+.tree-node2.maxed {
+  border-color: var(--gold);
+  background: rgba(232, 196, 105, 0.09);
+}
+.tn-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+}
+.tn-name {
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.tn-rank {
+  font-size: 0.68rem;
+  color: var(--azure);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.tn-desc {
+  font-size: 0.64rem;
+  color: var(--ink-dim);
+  line-height: 1.35;
+}
+.tn-foot {
+  font-size: 0.63rem;
+  margin-top: 1px;
+}
+.tn-cost {
+  color: var(--jade);
+}
+.tn-cost.poor {
+  color: var(--ink-dim);
+}
+.tn-max {
+  color: var(--gold);
+}
+.tn-locked {
+  color: var(--ink-dim);
+}
+
+@media (max-width: 720px) {
+  .tree-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

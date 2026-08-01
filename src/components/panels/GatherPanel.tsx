@@ -3,6 +3,9 @@ import { GATHER_SKILLS } from '../../game/content/gathering'
 import { getItemDef } from '../../game/content/items'
 import { levelForXp, levelProgress, xpForLevel, MAX_LEVEL } from '../../game/xp'
 import { formatNumber } from '../../game/formulas'
+import { SkillTree } from '../SkillTree'
+import { skillBonuses, effectiveCycle } from '../../game/skillEffects'
+import { pointsFromLevel, spentPoints } from '../../game/content/skillTrees'
 
 export function GatherPanel() {
   const state = useGame((s) => s.state)
@@ -25,6 +28,8 @@ export function GatherPanel() {
         const levelSpan = Math.floor(nextLevelXp - curLevelXp)
         const remaining = Math.max(0, Math.ceil(nextLevelXp - xp))
         const maxed = lv >= MAX_LEVEL
+        const sb = skillBonuses(state, skill.id)
+        const avail = pointsFromLevel(lv) - spentPoints(skill.id, state.skillNodes ?? {})
 
         return (
           <section key={skill.id} className="panel">
@@ -65,7 +70,9 @@ export function GatherPanel() {
                       {a.name} {active && <span className="live-dot">採集中</span>}
                     </span>
                     <span className="tech-info">
-                      {locked ? `需 Lv.${a.unlockLevel}` : `產 ${produced?.emoji ?? ''}${produced?.name} · ${a.cycleSec}秒/次 · +${a.xp}xp`}
+                      {locked
+                        ? `需 Lv.${a.unlockLevel}`
+                        : `產 ${produced?.emoji ?? ''}${produced?.name} · ${effectiveCycle(a.cycleSec, sb.gatherSpeed).toFixed(1)}秒/次 · +${Math.round(a.xp * (1 + sb.gatherXp))}xp`}
                     </span>
                   </button>
                 )
@@ -75,22 +82,9 @@ export function GatherPanel() {
             <details className="skill-tree">
               <summary className="skill-tree-head">
                 🌳 {skill.name}·技能樹
-                <span className="soon-tag">規劃中</span>
+                {avail > 0 && <span className="soon-tag point-tag">{avail} 點可用</span>}
               </summary>
-              <div className="skill-tree-body">
-                <p className="hint">
-                  此處將可投入技能點，解鎖 {skill.name} 的專精：產量加成、稀有素材機率、
-                  採集速度、雙倍產出等分支。
-                </p>
-                <div className="tree-placeholder">
-                  {['產量', '速度', '稀有', '專精'].map((branch) => (
-                    <div key={branch} className="tree-node locked">
-                      <span className="tree-node-icon">🔒</span>
-                      <span className="tree-node-name">{branch}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <SkillTree skillId={skill.id} kind="gather" />
             </details>
           </section>
         )
