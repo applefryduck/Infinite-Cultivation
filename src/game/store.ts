@@ -11,6 +11,8 @@ import {
   spiritRootUpgradeCost,
   daoOnReincarnation,
   REINCARNATION_MIN_STAGE,
+  craftCost,
+  pillQiAmount,
 } from './formulas'
 import { getStageInfo } from './realms'
 import { PATH_MAP, getTechnique } from './content/paths'
@@ -413,6 +415,9 @@ export const useGame = create<Store>((set, get) => ({
         return { ok: false, error: `素材不足：${getItemDef(id)?.name ?? id}` }
       }
     }
+    const def = getItemDef(resultItemId)
+    const fee = def ? craftFee(st, def, key) : 0
+    if (st.spiritStones < fee) return { ok: false, error: `靈石不足：需 ${fee} 枚` }
     get().combine(a, b)
     return { ok: true }
   },
@@ -430,6 +435,13 @@ export const useGame = create<Store>((set, get) => ({
         pushLog(s, '靈氣潰散，這兩樣東西未能相融。', 'bad')
         return { state: s }
       }
+      // 重複煉製需靈石（首次發現免費，保留探索樂趣）
+      const feeC = craftFee(s, res.item, recipeKey(aId, bId))
+      if (s.spiritStones < feeC) {
+        pushLog(s, `丹爐火候不足，重複煉製需靈石 ${feeC} 枚。`, 'bad')
+        return { state: s }
+      }
+      s.spiritStones -= feeC
       // 消耗
       for (const [id, n] of Object.entries(need)) addItem(s, id, -n)
       finishCraft(s, res.item, res.named, 'combine', aId, bId)
@@ -445,6 +457,12 @@ export const useGame = create<Store>((set, get) => ({
         pushLog(s, '此物無可提煉之處。', 'bad')
         return { state: s }
       }
+      const feeR = craftFee(s, res.item, recipeKey(aId))
+      if (s.spiritStones < feeR) {
+        pushLog(s, `提煉需耗靈石 ${feeR} 枚，靈石不足。`, 'bad')
+        return { state: s }
+      }
+      s.spiritStones -= feeR
       if (!isElement(aId)) addItem(s, aId, -1)
       finishCraft(s, res.item, res.named, 'refine', aId)
       return { state: s }
@@ -570,6 +588,12 @@ export const useGame = create<Store>((set, get) => ({
   },
 }))
 
+/** 煉製費用：首次發現免費，之後依品階與境界收取靈石 */
+export function craftFee(state: GameState, item: ItemDef, key: string): number {
+  if (!state.discovered[key]) return 0
+  return craftCost(item.tier, state.stageIndex)
+}
+
 // finishCraft：登錄發現、給經驗、加入儲物、首發獎勵
 function finishCraft(
   s: GameState,
@@ -581,6 +605,11 @@ function finishCraft(
 ): void {
   const key = recipeKey(aId, bId)
   const firstTime = !s.discovered[key]
+
+  // 增修為丹藥：在首次煉成時烘焙固定藥效，避免隨境界無限放大
+  if (firstTime && item.effect?.kind === 'qi' && item.effect.amount === undefined) {
+    item.effect = { ...item.effect, amount: pillQiAmount(item.tier, s.stageIndex) }
+  }
 
   registerItem(item)
   s.discoveredItems[item.id] = item

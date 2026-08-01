@@ -3,7 +3,7 @@ import type { ItemDef } from './content/items'
 import { getItemDef } from './content/items'
 import { PATHS } from './content/paths'
 import { materialEfficiency } from './materials'
-import { breakthroughCost } from './formulas'
+import { breakthroughCost, craftCost } from './formulas'
 import { ATTR_MAP } from './content/attributes'
 
 /** 配方來源：合成兩素材或提煉單素材 */
@@ -23,6 +23,13 @@ export function findRecipe(state: GameState, itemId: string): RecipeInfo | undef
   }
   const defs = key.split('+').map(getItemDef).filter((d): d is ItemDef => !!d)
   return defs.length ? { kind: 'combine', inputs: defs } : undefined
+}
+
+/** 重複煉製所需靈石（首次發現免費） */
+export function craftFeeFor(state: GameState, itemId: string, tier: number): number {
+  const entry = Object.entries(state.discovered).find(([, id]) => id === itemId)
+  if (!entry) return 0
+  return craftCost(tier, state.stageIndex)
 }
 
 /** 此物品是否有足夠素材可製作 */
@@ -48,19 +55,18 @@ export interface UseInfo {
  * 這個物品能派上什麼用場：服用效果、裝備加成、
  * 以及拿去修練時（作為素材）的效率與鍛鍊屬性。
  */
-export function itemUses(state: GameState, def: ItemDef): UseInfo[] {
+export function itemUses(_state: GameState, def: ItemDef): UseInfo[] {
   const uses: UseInfo[] = []
 
   // 消耗品效果
   if (def.effect) {
     const e = def.effect
     switch (e.kind) {
-      case 'qi':
-        uses.push({
-          label: '服用',
-          detail: `立即增加修為 ${Math.floor(e.k * breakthroughCost(state.stageIndex))}（隨境界成長）`,
-        })
+      case 'qi': {
+        const amt = e.amount ?? Math.floor(e.k * breakthroughCost(Math.min(def.tier * 2, 12)))
+        uses.push({ label: '服用', detail: `立即增加修為 ${amt}（煉成時固定）` })
         break
+      }
       case 'breakthrough':
         uses.push({ label: '服用', detail: `下次突破成功率 +${Math.round(e.pct * 100)}%` })
         break

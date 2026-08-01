@@ -14,7 +14,10 @@ export function applyConsumable(state: GameState, item: ItemDef, now: number): s
 
   switch (e.kind) {
     case 'qi': {
-      const gain = Math.floor(e.k * breakthroughCost(state.stageIndex))
+      // 優先採用煉成時烘焙的固定值；舊存檔（僅有 k）改以品階換算絕對值，
+      // 避免藥效隨當前境界無限放大。
+      const gain =
+        e.amount ?? Math.floor(e.k * breakthroughCost(Math.min(item.tier * 2, 12)))
       state.qi += gain
       return `服下 ${item.name}，修為大進（+${gain}）。`
     }

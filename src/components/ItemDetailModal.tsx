@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useGame } from '../game/store'
 import { getItemDef } from '../game/content/items'
-import { findRecipe, canCraft, itemUses } from '../game/itemInfo'
+import { findRecipe, canCraft, itemUses, craftFeeFor } from '../game/itemInfo'
 import { CATEGORY_LABEL } from './ui/labels'
 
 const TIERS = ['凡品', '靈品', '玄品', '地品', '天品', '仙品', '神品']
@@ -22,6 +22,8 @@ export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: 
   const owned = Math.floor(state.inventory[itemId] ?? 0)
   const recipe = findRecipe(state, itemId)
   const craftable = recipe ? canCraft(state, recipe) : { ok: false, missing: [] }
+  const fee = craftFeeFor(state, itemId, def.tier)
+  const affordable = state.spiritStones >= fee
   const uses = itemUses(state, def)
 
   function handleCraft() {
@@ -77,8 +79,21 @@ export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: 
               </div>
               <div className="recipe-kind">{recipe.kind === 'refine' ? '提煉' : '合成'}</div>
 
-              <button className="btn btn-breakthrough" disabled={!craftable.ok} onClick={handleCraft}>
-                {craftable.ok ? '一鍵煉製' : `素材不足：${craftable.missing.join('、')}`}
+              {fee > 0 && (
+                <div className="craft-fee">
+                  重複煉製耗費 <strong>{fee}</strong> 靈石（持有 {Math.floor(state.spiritStones)}）
+                </div>
+              )}
+              <button
+                className="btn btn-breakthrough"
+                disabled={!craftable.ok || !affordable}
+                onClick={handleCraft}
+              >
+                {!craftable.ok
+                  ? `素材不足：${craftable.missing.join('、')}`
+                  : !affordable
+                    ? `靈石不足（需 ${fee}）`
+                    : '一鍵煉製'}
               </button>
             </>
           ) : (

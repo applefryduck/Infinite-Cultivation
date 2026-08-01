@@ -16,7 +16,7 @@ export type EquipSlot = '劍' | '防' | '器' | '陣'
 
 /** 丹藥/消耗品效果 */
 export type ItemEffect =
-  | { kind: 'qi'; k: number } // +修為 = k · tier · breakthroughCost
+  | { kind: 'qi'; k: number; amount?: number } // amount 為煉成時烘焙的固定修為量；k 為舊存檔相容欄位
   | { kind: 'breakthrough'; pct: number } // 下次突破 +成功率
   | { kind: 'speedBuff'; mult: number; durationSec: number } // 限時提速
   | { kind: 'permaSpeed'; pct: number } // 永久提速

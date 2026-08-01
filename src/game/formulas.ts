@@ -66,6 +66,24 @@ export function spiritRootUpgradeCost(level: number): number {
 }
 
 /**
+ * 煉製費用（靈石）。首次發現免費，之後重複煉製需付費。
+ * 隨品階與境界成長，與靈石產出同步，避免免費無限量產素材／丹藥。
+ */
+export function craftCost(tier: number, stageIndex: number): number {
+  // 成長率 1.45 必須高於靈石收入成長率（breakthroughReward 的 1.4），
+  // 否則後期靈石收入會反超煉製成本，讓「煉丹刷境界」的無限迴圈復活。
+  return Math.floor(15 * tier * Math.pow(1.45, stageIndex))
+}
+
+/**
+ * 聚氣丹等「增修為」丹藥的固定藥效，在煉成當下依品階與境界烘焙。
+ * 固定值避免舊丹隨境界水漲船高（原設計會讓丹藥永遠等於下次突破的固定比例）。
+ */
+export function pillQiAmount(tier: number, stageIndex: number): number {
+  return Math.floor(0.15 * tier * breakthroughCost(stageIndex))
+}
+
+/**
  * 輪回轉世可獲得的道韻。境界越高，轉世收益越大。
  * 需達到一定境界才能轉世。
  */
