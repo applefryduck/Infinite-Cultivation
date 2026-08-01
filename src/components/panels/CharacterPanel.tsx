@@ -4,6 +4,7 @@ import { breakthroughCost, breakthroughChance, formatNumber } from '../../game/f
 import { aggregate, cultivationRate, combatStats, pathLevel } from '../../game/stats'
 import { ATTRIBUTES, attrPoints, attrProgress, trainForPoints } from '../../game/content/attributes'
 import { PATHS, PATH_MAP, getTechnique } from '../../game/content/paths'
+import { Collapsible } from '../ui/Collapsible'
 
 export function CharacterPanel() {
   const state = useGame((s) => s.state)
@@ -114,8 +115,7 @@ export function CharacterPanel() {
       </section>
 
       {/* 衍生數值 */}
-      <section className="panel">
-        <h2>衍生數值</h2>
+      <Collapsible id="derived" title="衍生數值">
         <div className="derived-grid">
           <Derived label="氣血上限" value={formatNumber(cs.maxHp)} />
           <Derived label="攻擊" value={`${formatNumber(cs.atk)} ×${cs.attackCount}`} />
@@ -126,7 +126,7 @@ export function CharacterPanel() {
           <Derived label="煉製成功" value={`+${Math.round(agg.craftSuccessPct * 100)}%`} />
           <Derived label="掉落加成" value={`+${Math.round(agg.dropPct * 100)}%`} />
         </div>
-      </section>
+      </Collapsible>
 
       {/* 體系等級一覽 */}
       <section className="panel">

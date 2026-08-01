@@ -3,11 +3,7 @@ import { useGame } from '../game/store'
 import { getItemDef } from '../game/content/items'
 import { findRecipe, canCraft, itemUses, craftFeeFor } from '../game/itemInfo'
 import { CATEGORY_LABEL } from './ui/labels'
-
-const TIERS = ['凡品', '靈品', '玄品', '地品', '天品', '仙品', '神品']
-function tierName(tier: number): string {
-  return TIERS[Math.min(tier - 1, TIERS.length - 1)] ?? `${tier}階`
-}
+import { TierBadge } from './ui/Tier'
 
 export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: () => void }) {
   const state = useGame((s) => s.state)
@@ -26,9 +22,13 @@ export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: 
   const affordable = state.spiritStones >= fee
   const uses = itemUses(state, def)
 
-  function handleCraft() {
-    const r = craftKnown(itemId)
-    setMsg(r.ok ? { text: '煉製成功！', ok: true } : { text: r.error ?? '煉製失敗。', ok: false })
+  function handleCraft(qty: number) {
+    const r = craftKnown(itemId, qty)
+    setMsg(
+      r.ok
+        ? { text: `煉製成功 ×${r.made ?? qty}！`, ok: true }
+        : { text: r.error ?? '煉製失敗。', ok: false },
+    )
   }
 
   return (
@@ -46,7 +46,8 @@ export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: 
           <div className="item-hero-info">
             <div className="item-hero-name">{def.name}</div>
             <div className="item-hero-meta">
-              {CATEGORY_LABEL[def.category]} · {tierName(def.tier)}
+              <TierBadge tier={def.tier} />
+              {CATEGORY_LABEL[def.category]}
               {def.element && ` · ${def.element}屬`}
             </div>
             <div className="item-hero-owned">持有 {owned}</div>
@@ -84,17 +85,26 @@ export function ItemDetailModal({ itemId, onClose }: { itemId: string; onClose: 
                   重複煉製耗費 <strong>{fee}</strong> 靈石（持有 {Math.floor(state.spiritStones)}）
                 </div>
               )}
-              <button
-                className="btn btn-breakthrough"
-                disabled={!craftable.ok || !affordable}
-                onClick={handleCraft}
-              >
-                {!craftable.ok
-                  ? `素材不足：${craftable.missing.join('、')}`
-                  : !affordable
-                    ? `靈石不足（需 ${fee}）`
-                    : '一鍵煉製'}
-              </button>
+              {!craftable.ok ? (
+                <button className="btn btn-breakthrough" disabled>
+                  素材不足：{craftable.missing.join('、')}
+                </button>
+              ) : !affordable ? (
+                <button className="btn btn-breakthrough" disabled>
+                  靈石不足（需 {fee}）
+                </button>
+              ) : (
+                <div className="craft-batch">
+                  {[1, 5, 10].map((q) => (
+                    <button key={q} className="btn btn-breakthrough" onClick={() => handleCraft(q)}>
+                      煉製 ×{q}
+                    </button>
+                  ))}
+                  <button className="btn btn-buy" onClick={() => handleCraft(999)}>
+                    最大
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <p className="hint">此物並非煉製所得（採集或戰鬥獲得）。</p>

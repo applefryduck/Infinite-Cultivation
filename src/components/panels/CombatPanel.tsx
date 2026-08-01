@@ -5,6 +5,7 @@ import { combatStats } from '../../game/stats'
 import { PATH_MAP } from '../../game/content/paths'
 import { ELEMENT_COLOR } from '../../game/elements'
 import { formatNumber } from '../../game/formulas'
+import { Collapsible } from '../ui/Collapsible'
 
 export function CombatPanel() {
   const state = useGame((s) => s.state)
@@ -65,8 +66,12 @@ export function CombatPanel() {
         )}
       </section>
 
-      <section className="panel">
-        <h2>獵場</h2>
+      <Collapsible
+        id="hunt-areas"
+        title="獵場"
+        badge={`${HUNTING_AREAS.filter((a) => a.unlockRealm <= state.stageIndex).length}/${HUNTING_AREAS.length} 開放`}
+        defaultOpen
+      >
         {HUNTING_AREAS.map((area) => {
           const locked = area.unlockRealm > state.stageIndex
           const active = c.mode === 'hunt' && c.areaId === area.id
@@ -96,10 +101,13 @@ export function CombatPanel() {
             </div>
           )
         })}
-      </section>
+      </Collapsible>
 
-      <section className="panel">
-        <h2>秘境</h2>
+      <Collapsible
+        id="dungeons"
+        title="秘境"
+        badge={`${Object.keys(state.clearedDungeons ?? {}).length}/${SECRET_REALMS.length} 已通關`}
+      >
         {SECRET_REALMS.map((dj) => {
           const locked = dj.unlockRealm > state.stageIndex
           const active = c.mode === 'dungeon' && c.dungeonId === dj.id
@@ -142,7 +150,7 @@ export function CombatPanel() {
             </div>
           )
         })}
-      </section>
+      </Collapsible>
     </>
   )
 }

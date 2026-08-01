@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useGame, realmCap } from '../../game/store'
 import { SEED_ELEMENTS, getItemDef } from '../../game/content/items'
 import { CATEGORY_LABEL } from '../ui/labels'
+import { TierBadge, tierClass } from '../ui/Tier'
+import { Collapsible } from '../ui/Collapsible'
+import { RecipeGrid } from './RecipeGrid'
 
 export function CraftPanel() {
   const state = useGame((s) => s.state)
@@ -67,15 +70,25 @@ export function CraftPanel() {
             if (!def) return null
             const count = def.category === 'element' ? '∞' : Math.floor(state.inventory[id] ?? 0)
             return (
-              <button key={id} className="palette-item" onClick={() => pick(id)} title={CATEGORY_LABEL[def.category]}>
+              <button
+                key={id}
+                className={'palette-item ' + tierClass(def.tier)}
+                onClick={() => pick(id)}
+                title={`${def.name}｜${CATEGORY_LABEL[def.category]}`}
+              >
                 <span className="pi-emoji">{def.emoji}</span>
                 <span className="pi-name">{def.name}</span>
+                <TierBadge tier={def.tier} compact />
                 <span className="pi-count">{count}</span>
               </button>
             )
           })}
         </div>
       </section>
+
+      <Collapsible id="recipe-grid" title="📜 合成表" badge="探索迷霧">
+        <RecipeGrid />
+      </Collapsible>
     </>
   )
 }

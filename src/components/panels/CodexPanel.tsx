@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useGame } from '../../game/store'
 import { ItemDetailModal } from '../ItemDetailModal'
 import { CATEGORY_LABEL } from '../ui/labels'
+import { TierBadge } from '../ui/Tier'
 import { NAMED_CHAINS } from '../../game/crafting/namedChains'
 
 export function CodexPanel() {
@@ -34,6 +35,7 @@ export function CodexPanel() {
                 <span className="codex-emoji">{def.emoji}</span>
                 <span className="codex-name">{def.name}</span>
                 <span className="codex-cat">{CATEGORY_LABEL[def.category]}</span>
+                <TierBadge tier={def.tier} compact />
                 {isNamed && <span className="codex-star">★</span>}
               </button>
             )

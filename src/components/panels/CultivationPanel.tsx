@@ -9,6 +9,8 @@ import { candidatesFor, needLabel, materialEfficiency, resolveMaterial } from '.
 import type { GameState } from '../../game/types'
 import { getItemDef } from '../../game/content/items'
 import { ATTR_MAP } from '../../game/content/attributes'
+import { Collapsible } from '../ui/Collapsible'
+import { tierName } from '../ui/Tier'
 
 export function CultivationPanel() {
   const state = useGame((s) => s.state)
@@ -31,12 +33,19 @@ export function CultivationPanel() {
         const lv = pathLevel(state, path.id)
         const isActive = state.activePathId === path.id
         return (
-          <section key={path.id} className={'panel path-panel' + (isActive ? ' active' : '')}>
-            <div className="path-head">
-              <span className="path-name">{path.name}</span>
-              <span className="path-lv">Lv.{lv}</span>
-              <span className="path-role">{path.combatRole}</span>
-            </div>
+          <Collapsible
+            key={path.id}
+            id={`path-${path.id}`}
+            defaultOpen={isActive}
+            title={
+              <span className="path-head-inline">
+                <span className="path-name">{path.name}</span>
+                <span className="path-lv">Lv.{lv}</span>
+                <span className="path-role">{path.combatRole}</span>
+              </span>
+            }
+            badge={isActive ? '修練中' : undefined}
+          >
             <p className="path-desc">{path.desc}</p>
             <div className="tech-list">
               {path.techniques.map((tech) => (
@@ -49,7 +58,7 @@ export function CultivationPanel() {
                 />
               ))}
             </div>
-          </section>
+          </Collapsible>
         )
       })}
     </>
@@ -170,11 +179,6 @@ function TechniqueRow({
         })}
     </div>
   )
-}
-
-const TIERS = ['凡品', '靈品', '玄品', '地品', '天品', '仙品', '神品']
-function tierName(tier: number): string {
-  return TIERS[Math.min(tier - 1, TIERS.length - 1)] ?? `${tier}階`
 }
 
 function formatEta(sec: number): string {

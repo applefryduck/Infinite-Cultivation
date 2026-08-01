@@ -241,7 +241,7 @@ interface Store {
   investSkillNode: (nodeId: string) => void
   respecSkill: (skillId: string) => void
   attemptTribulation: (tribId: string) => void
-  craftKnown: (resultItemId: string) => { ok: boolean; error?: string }
+  craftKnown: (resultItemId: string, qty?: number) => { ok: boolean; error?: string; made?: number }
   breakthrough: () => void
   combine: (aId: string, bId: string) => void
   refine: (aId: string) => void
@@ -452,83 +452,48 @@ export const useGame = create<Store>((set, get) => ({
       return { state: s }
     }),
 
-  craftKnown: (resultItemId) => {
-    const st = get().state
-    // 找出能產出此物品的已知配方
-    const entry = Object.entries(st.discovered).find(([, id]) => id === resultItemId)
-    if (!entry) return { ok: false, error: '尚未發現此配方。' }
-    const [key] = entry
-    if (key.startsWith('refine|')) {
-      const src = key.slice('refine|'.length)
-      const def = getItemDef(src)
-      if (!def) return { ok: false, error: '素材資料遺失。' }
-      if (def.category !== 'element' && (st.inventory[src] ?? 0) < 1) {
-        return { ok: false, error: `素材不足：${def.name}` }
+  craftKnown: (resultItemId, qty = 1) => {
+    let made = 0
+    let reason: string | undefined
+    set((store) => {
+      const s = clone(store.state)
+      const entry = Object.entries(s.discovered).find(([, id]) => id === resultItemId)
+      if (!entry) return { state: s }
+      const [key] = entry
+      for (let i = 0; i < qty; i++) {
+        const r = key.startsWith('refine|')
+          ? doRefine(s, key.slice('refine|'.length))
+          : doCombine(s, key.split('+')[0], key.split('+')[1])
+        if (!r.ok) {
+          reason = r.reason
+          break
+        }
+        made++
       }
-      get().refine(src)
-      return { ok: true }
-    }
-    const [a, b] = key.split('+')
-    const need: Record<string, number> = {}
-    for (const id of [a, b]) {
-      if (getItemDef(id)?.category === 'element') continue
-      need[id] = (need[id] ?? 0) + 1
-    }
-    for (const [id, n] of Object.entries(need)) {
-      if ((st.inventory[id] ?? 0) < n) {
-        return { ok: false, error: `素材不足：${getItemDef(id)?.name ?? id}` }
+      if (made > 1) {
+        // 批量時壓縮日誌，避免洗版
+        s.log = s.log.filter((l, i) => i === 0 || !l.text.startsWith('煉成 '))
+        pushLog(s, `批量煉製完成 ×${made}。`, 'good')
       }
-    }
-    const def = getItemDef(resultItemId)
-    const fee = def ? craftFee(st, def, key) : 0
-    if (st.spiritStones < fee) return { ok: false, error: `靈石不足：需 ${fee} 枚` }
-    get().combine(a, b)
-    return { ok: true }
+      return { state: s }
+    })
+    if (made === 0) return { ok: false, error: reason ?? '尚未發現此配方。' }
+    return { ok: true, made }
   },
 
   combine: (aId, bId) =>
     set((store) => {
       const s = clone(store.state)
-      // 檢查素材（元素免費、無限）
-      const need: Record<string, number> = {}
-      for (const id of [aId, bId]) if (!isElement(id)) need[id] = (need[id] ?? 0) + 1
-      for (const [id, n] of Object.entries(need)) if (invCount(s, id) < n) return {}
-
-      const res = offlineProvider.combine(aId, bId, realmCap(s))
-      if (!res) {
-        pushLog(s, '靈氣潰散，這兩樣東西未能相融。', 'bad')
-        return { state: s }
-      }
-      // 重複煉製需靈石（首次發現免費，保留探索樂趣）
-      const feeC = craftFee(s, res.item, recipeKey(aId, bId))
-      if (s.spiritStones < feeC) {
-        pushLog(s, `丹爐火候不足，重複煉製需靈石 ${feeC} 枚。`, 'bad')
-        return { state: s }
-      }
-      s.spiritStones -= feeC
-      // 消耗
-      for (const [id, n] of Object.entries(need)) addItem(s, id, -n)
-      finishCraft(s, res.item, res.named, 'combine', aId, bId)
+      const r = doCombine(s, aId, bId)
+      if (!r.ok && r.reason) pushLog(s, r.reason, 'bad')
       return { state: s }
     }),
 
   refine: (aId) =>
     set((store) => {
       const s = clone(store.state)
-      if (!isElement(aId) && invCount(s, aId) < 1) return {}
-      const res = offlineProvider.refine(aId, realmCap(s))
-      if (!res) {
-        pushLog(s, '此物無可提煉之處。', 'bad')
-        return { state: s }
-      }
-      const feeR = craftFee(s, res.item, recipeKey(aId))
-      if (s.spiritStones < feeR) {
-        pushLog(s, `提煉需耗靈石 ${feeR} 枚，靈石不足。`, 'bad')
-        return { state: s }
-      }
-      s.spiritStones -= feeR
-      if (!isElement(aId)) addItem(s, aId, -1)
-      finishCraft(s, res.item, res.named, 'refine', aId)
+      const r = doRefine(s, aId)
+      if (!r.ok && r.reason) pushLog(s, r.reason, 'bad')
       return { state: s }
     }),
 
@@ -651,6 +616,43 @@ export const useGame = create<Store>((set, get) => ({
     return { ok: true }
   },
 }))
+
+/** 在草稿 state 上執行一次合成，回傳是否成功與失敗原因 */
+function doCombine(s: GameState, aId: string, bId: string): { ok: boolean; reason?: string } {
+  const need: Record<string, number> = {}
+  for (const id of [aId, bId]) if (!isElement(id)) need[id] = (need[id] ?? 0) + 1
+  for (const [id, n] of Object.entries(need)) {
+    if (invCount(s, id) < n) return { ok: false, reason: `素材不足：${getItemDef(id)?.name ?? id}` }
+  }
+
+  const res = offlineProvider.combine(aId, bId, realmCap(s))
+  if (!res) return { ok: false, reason: '靈氣潰散，這兩樣東西未能相融。' }
+
+  const fee = craftFee(s, res.item, recipeKey(aId, bId))
+  if (s.spiritStones < fee) return { ok: false, reason: `靈石不足，煉製需 ${fee} 枚。` }
+
+  s.spiritStones -= fee
+  for (const [id, n] of Object.entries(need)) addItem(s, id, -n)
+  finishCraft(s, res.item, res.named, 'combine', aId, bId)
+  return { ok: true }
+}
+
+/** 在草稿 state 上執行一次提煉 */
+function doRefine(s: GameState, aId: string): { ok: boolean; reason?: string } {
+  if (!isElement(aId) && invCount(s, aId) < 1) {
+    return { ok: false, reason: `素材不足：${getItemDef(aId)?.name ?? aId}` }
+  }
+  const res = offlineProvider.refine(aId, realmCap(s))
+  if (!res) return { ok: false, reason: '此物無可提煉之處。' }
+
+  const fee = craftFee(s, res.item, recipeKey(aId))
+  if (s.spiritStones < fee) return { ok: false, reason: `靈石不足，提煉需 ${fee} 枚。` }
+
+  s.spiritStones -= fee
+  if (!isElement(aId)) addItem(s, aId, -1)
+  finishCraft(s, res.item, res.named, 'refine', aId)
+  return { ok: true }
+}
 
 /** 煉製費用：首次發現免費，之後依品階與境界收取靈石 */
 export function craftFee(state: GameState, item: ItemDef, key: string): number {

@@ -4,6 +4,7 @@ import { ItemDetailModal } from '../ItemDetailModal'
 import { getItemDef } from '../../game/content/items'
 import type { ItemDef } from '../../game/content/items'
 import { CATEGORY_LABEL, EFFECT_LABEL } from '../ui/labels'
+import { TierBadge } from '../ui/Tier'
 
 export function InventoryPanel() {
   const state = useGame((s) => s.state)
@@ -58,7 +59,7 @@ export function InventoryPanel() {
                 {def.name}
               </div>
               <div className="inv-cat">
-                {CATEGORY_LABEL[def.category]}·{tierName(def.tier)}
+                <TierBadge tier={def.tier} compact /> {CATEGORY_LABEL[def.category]}
               </div>
               {def.effect && <div className="inv-effect">{EFFECT_LABEL[def.effect.kind]}</div>}
               <div className="inv-actions">
@@ -96,7 +97,3 @@ function describeBonus(def: ItemDef): string {
   return parts.join(' ')
 }
 
-const TIERS = ['凡品', '靈品', '玄品', '地品', '天品', '仙品', '神品']
-function tierName(tier: number): string {
-  return TIERS[Math.min(tier - 1, TIERS.length - 1)] ?? `${tier}階`
-}
