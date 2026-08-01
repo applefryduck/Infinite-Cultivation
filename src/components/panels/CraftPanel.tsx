@@ -86,7 +86,7 @@ export function CraftPanel() {
         </div>
       </section>
 
-      <Collapsible id="recipe-grid" title="📜 合成表" badge="探索迷霧">
+      <Collapsible id="recipe-grid" title="🔍 探索台" badge="配方探索">
         <RecipeGrid />
       </Collapsible>
     </>
