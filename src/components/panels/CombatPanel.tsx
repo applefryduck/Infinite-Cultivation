@@ -75,6 +75,11 @@ export function CombatPanel() {
               <div className="area-info">
                 <div className="area-name">
                   {area.emoji} {area.name}
+                  {area.element && (
+                    <span className="elem-tag" style={{ color: ELEMENT_COLOR[area.element] }}>
+                      {area.element}
+                    </span>
+                  )}
                 </div>
                 <div className="area-desc">{area.desc}</div>
                 <div className="area-enemies">
@@ -103,12 +108,28 @@ export function CombatPanel() {
               <div className="area-info">
                 <div className="area-name">
                   {dj.emoji} {dj.name}
-                  <span className="elem-tag" style={{ color: ELEMENT_COLOR[dj.element] }}>
-                    {dj.element}屬
-                  </span>
+                  {dj.element && (
+                    <span className="elem-tag" style={{ color: ELEMENT_COLOR[dj.element] }}>
+                      {dj.element}屬
+                    </span>
+                  )}
                 </div>
                 <div className="area-desc">{dj.desc}</div>
-                <div className="area-desc">波次 {dj.waves.length} + BOSS · 通關得靈石 {dj.reward.stones}</div>
+                <div className="area-desc">
+                  波次 {dj.waves.length} + BOSS · 通關得靈石 {formatNumber(dj.reward.stones)}
+                </div>
+                {(() => {
+                  const clears = state.clearedDungeons?.[dj.id] ?? 0
+                  return clears > 0 ? (
+                    <div className="area-desc cleared">✔ 已通關 {clears} 次</div>
+                  ) : dj.firstClear ? (
+                    <div className="area-desc first-clear">
+                      首通額外：
+                      {dj.firstClear.attrPoints ? `屬性點 ${dj.firstClear.attrPoints}` : ''}
+                      {dj.firstClear.dao ? ` 道韻 ${dj.firstClear.dao}` : ''}
+                    </div>
+                  ) : null
+                })()}
                 {active && <div className="area-desc">進度：第 {Math.min(c.waveIndex + 1, dj.waves.length + 1)} 關</div>}
               </div>
               <button

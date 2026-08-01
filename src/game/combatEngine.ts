@@ -116,7 +116,26 @@ export function combatTick(state: GameState, seconds: number, now: number, live 
           // 擊敗 BOSS，通關
           state.spiritStones += dj.reward.stones
           for (const it of dj.reward.items) addItem(state, it.itemId, it.qty)
+
+          const cleared = state.clearedDungeons ?? (state.clearedDungeons = {})
+          const isFirst = !cleared[dj.id]
+          cleared[dj.id] = (cleared[dj.id] ?? 0) + 1
+
           logs.push({ text: `秘境「${dj.name}」通關！斬殺 ${enemy.name}，獲得豐厚獎勵。`, kind: 'combat' })
+
+          if (isFirst && dj.firstClear) {
+            const fc = dj.firstClear
+            if (fc.dao) state.dao += fc.dao
+            if (fc.attrPoints) state.freeAttrPoints += fc.attrPoints
+            if (fc.items) for (const it of fc.items) addItem(state, it.itemId, it.qty)
+            const parts: string[] = []
+            if (fc.attrPoints) parts.push(`屬性點 ${fc.attrPoints}`)
+            if (fc.dao) parts.push(`道韻 ${fc.dao}`)
+            logs.push({
+              text: `【首次通關】${dj.name}！額外獲得：${parts.join('、')}。`,
+              kind: 'breakthrough',
+            })
+          }
           c.mode = 'idle'
           c.dungeonId = undefined
           c.enemyId = undefined

@@ -2050,3 +2050,10 @@ button.codex-item:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.area-desc.cleared {
+  color: var(--jade);
+}
+.area-desc.first-clear {
+  color: var(--gold);
+}

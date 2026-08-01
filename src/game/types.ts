@@ -88,6 +88,8 @@ export interface GameState {
 
   // 戰鬥
   combat: CombatState
+  /** 秘境通關次數：dungeonId -> 次數 */
+  clearedDungeons: Record<string, number>
 
   // 系統
   lastTick: number

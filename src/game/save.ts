@@ -40,6 +40,7 @@ export function createInitialState(): GameState {
     permaAtkPct: 0,
     permaBreakthroughPct: 0,
     permaDropPct: 0,
+    clearedDungeons: {},
     combat: {
       mode: 'idle',
       waveIndex: 0,

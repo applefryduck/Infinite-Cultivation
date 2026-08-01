@@ -92,8 +92,17 @@ export const BASE_MATERIALS: ItemDef[] = [
   { id: 'beast_dan_3', name: '上階妖丹', emoji: '🟣', category: 'beast', tier: 3 },
   { id: 'beast_blood', name: '妖獸精血', emoji: '🩸', category: 'beast', tier: 2 },
   { id: 'beast_soul', name: '妖魂', emoji: '👻', category: 'beast', tier: 2 },
+  { id: 'beast_dan_4', name: '妖王丹', emoji: '🔵', category: 'beast', tier: 4 },
+  { id: 'beast_dan_5', name: '妖聖丹', emoji: '⚫', category: 'beast', tier: 5 },
+  { id: 'beast_dan_6', name: '仙獸內丹', emoji: '⭐', category: 'beast', tier: 6 },
+  { id: 'beast_bone', name: '龍骨', emoji: '🦴', category: 'beast', tier: 4 },
+  { id: 'beast_scale', name: '真龍逆鱗', emoji: '🐉', category: 'beast', tier: 5 },
+  // 高階精神靈材（秘境與高階獵場產出）
+  { id: 'spirit_4', name: '神魂晶', emoji: '💠', category: 'spirit', tier: 4 },
+  { id: 'spirit_5', name: '太虛神念', emoji: '🌌', category: 'spirit', tier: 5 },
   // 提煉催化
   { id: 'essence_soul', name: '魂玉', emoji: '🫧', category: 'essence', tier: 3, desc: '妖魂提煉之精，神識修煉聖品。' },
+  { id: 'essence_chaos', name: '混沌之源', emoji: '🌀', category: 'essence', tier: 6, desc: '開天闢地之初的一縷本源，煉製至寶所需。' },
 ]
 
 // 立即登錄所有靜態物品
